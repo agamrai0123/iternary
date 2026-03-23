@@ -1,0 +1,36 @@
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] Loaded HTML Templates (6): 
+	- search.html
+	- 
+	- create-itinerary.html
+	- destination-detail.html
+	- index.html
+	- itinerary-detail.html
+
+[GIN-debug] GET    /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (6 handlers)
+[GIN-debug] HEAD   /static/*filepath         --> github.com/gin-gonic/gin.(*RouterGroup).createStaticHandler.func1 (6 handlers)
+[GIN-debug] GET    /                         --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).Index-fm (6 handlers)
+[GIN-debug] GET    /destination/:id          --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).DestinationDetail-fm (6 handlers)
+[GIN-debug] GET    /itinerary/:id            --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).ItineraryDetail-fm (6 handlers)
+[GIN-debug] GET    /create                   --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).CreateItineraryPage-fm (6 handlers)
+[GIN-debug] POST   /create                   --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).CreateItinerarySubmit-fm (6 handlers)
+[GIN-debug] GET    /search                   --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).SearchPage-fm (6 handlers)
+[GIN-debug] GET    /api/health               --> github.com/yourusername/itinerary-backend/itinerary.SetupRoutes.(*MetricsMiddleware).HealthCheckEndpoint.func6 (6 handlers)
+[GIN-debug] GET    /api/metrics              --> github.com/yourusername/itinerary-backend/itinerary.SetupRoutes.(*MetricsMiddleware).MetricsEndpoint.func7 (6 handlers)
+[GIN-debug] GET    /api/destinations         --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).GetDestinations-fm (6 handlers)
+[GIN-debug] GET    /api/destinations/:destinationId/itineraries --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).GetItinerariesByDestination-fm (6 handlers)
+[GIN-debug] GET    /api/itineraries/:itineraryId --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).GetItineraryDetail-fm (6 handlers)
+[GIN-debug] POST   /api/itineraries          --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).CreateItinerary-fm (6 handlers)
+[GIN-debug] POST   /api/itineraries/:itineraryId/like --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).LikeItinerary-fm (6 handlers)
+[GIN-debug] POST   /api/itineraries/:itineraryId/comments --> github.com/yourusername/itinerary-backend/itinerary.(*Handlers).CommentOnItinerary-fm (6 handlers)
+[GIN-debug] POST   /auth/login               --> github.com/yourusername/itinerary-backend/itinerary.(*AuthHandlers).Login-fm (6 handlers)
+[GIN-debug] POST   /auth/logout              --> github.com/yourusername/itinerary-backend/itinerary.(*AuthHandlers).Logout-fm (6 handlers)
+[GIN-debug] GET    /auth/profile             --> github.com/yourusername/itinerary-backend/itinerary.(*AuthHandlers).GetProfile-fm (6 handlers)
+[GIN-debug] PUT    /auth/profile             --> github.com/yourusername/itinerary-backend/itinerary.(*AuthHandlers).UpdateProfile-fm (6 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://github.com/gin-gonic/gin/blob/master/docs/doc.md#dont-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :8080
+[GIN-debug] [ERROR] listen tcp :8080: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.

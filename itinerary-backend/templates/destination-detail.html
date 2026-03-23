@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Itineraries</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🌍 Itinerary Hub</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/create">Create Itinerary</a></li>
+                <li><a href="/search">Search</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="btn-back">← Back to Destinations</a>
+
+        {{if .error}}
+            <div class="alert alert-error">
+                {{.error}}
+            </div>
+        {{else}}
+            <div class="itineraries-section">
+                <h2>Available Itineraries</h2>
+                <p class="result-count">Found {{.total}} itineraries</p>
+
+                <div class="itineraries-list">
+                    {{if .itineraries}}
+                        {{range .itineraries}}
+                            <div class="itinerary-card">
+                                <div class="card-header">
+                                    <h3>{{.Title}}</h3>
+                                    <span class="likes">❤️ {{.Likes}} likes</span>
+                                </div>
+                                
+                                <div class="card-meta">
+                                    <span class="duration">📅 {{.Duration}} days</span>
+                                    <span class="budget">💰 ₹{{.Budget}}</span>
+                                </div>
+
+                                <p class="description">{{.Description}}</p>
+
+                                <div class="card-footer">
+                                    <a href="/itinerary/{{.ID}}" class="btn-secondary">View Full Plan</a>
+                                </div>
+                            </div>
+                        {{end}}
+                    {{else}}
+                        <p class="no-results">No itineraries found for this destination yet.</p>
+                    {{end}}
+                </div>
+
+                {{if gt .totalPages 1}}
+                    <div class="pagination">
+                        {{if gt .currentPage 1}}
+                            <a href="/destination/{{.destinationID}}?page={{sub .currentPage 1}}" class="btn-small">← Previous</a>
+                        {{end}}
+                        
+                        <span class="page-info">Page {{.currentPage}} of {{.totalPages}}</span>
+                        
+                        {{if lt .currentPage .totalPages}}
+                            <a href="/destination/{{.destinationID}}?page={{add .currentPage 1}}" class="btn-small">Next →</a>
+                        {{end}}
+                    </div>
+                {{end}}
+            </div>
+        {{end}}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Itinerary Hub - Share Your Travel Stories</p>
+    </footer>
+</body>
+</html>

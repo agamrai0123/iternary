@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.itinerary.Title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🌍 Itinerary Hub</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/create">Create Itinerary</a></li>
+                <li><a href="/search">Search</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/" class="btn-back">← Back to Home</a>
+
+        {{if .error}}
+            <div class="alert alert-error">
+                {{.error}}
+            </div>
+        {{else}}
+            <div class="itinerary-detail">
+                <div class="itinerary-header">
+                    <h1>{{.itinerary.Title}}</h1>
+                    
+                    <div class="itinerary-stats">
+                        <span class="stat">
+                            <span class="icon">📅</span>
+                            <span class="value">{{.itinerary.Duration}} days</span>
+                        </span>
+                        <span class="stat">
+                            <span class="icon">💰</span>
+                            <span class="value">₹{{.totalPrice}}</span>
+                        </span>
+                        <span class="stat">
+                            <span class="icon">❤️</span>
+                            <span class="value">{{.itinerary.Likes}}</span>
+                        </span>
+                    </div>
+
+                    <p class="itinerary-description">{{.itinerary.Description}}</p>
+
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="likeItinerary('{{.itinerary.ID}}')">❤️ Like</button>
+                        <button class="btn-secondary" onclick="copyPlan('{{.itinerary.ID}}')">📋 Copy to My Plans</button>
+                    </div>
+                </div>
+
+                {{if .itinerary.Items}}
+                    <div class="itinerary-items">
+                        <h2>Daily Breakdown</h2>
+                        
+                        {{$currentDay := 0}}
+                        {{range .itinerary.Items}}
+                            {{if ne .Day $currentDay}}
+                                {{if gt $currentDay 0}}
+                                    </div>
+                                {{end}}
+                                <div class="day-section">
+                                    <h3>Day {{.Day}}</h3>
+                                {{$currentDay = .Day}}
+                            {{end}}
+                            
+                            <div class="item {{.Type}}">
+                                <div class="item-header">
+                                    <span class="item-type {{.Type}}">{{typeIcon .Type}} {{toUpper .Type}}</span>
+                                    <span class="item-price">₹{{.Price}}</span>
+                                </div>
+                                
+                                <h4>{{.Name}}</h4>
+                                
+                                {{if .Description}}
+                                    <p class="item-description">{{.Description}}</p>
+                                {{end}}
+                                
+                                <div class="item-details">
+                                    {{if .Location}}
+                                        <span class="detail">📍 {{.Location}}</span>
+                                    {{end}}
+                                    {{if .Duration}}
+                                        <span class="detail">⏱️ {{.Duration}} hours</span>
+                                    {{end}}
+                                    {{if .Rating}}
+                                        <span class="detail">⭐ {{.Rating}}/5</span>
+                                    {{end}}
+                                </div>
+
+                                {{if .BookingURL}}
+                                    <a href="{{.BookingURL}}" target="_blank" class="btn-link">Book Now</a>
+                                {{end}}
+                            </div>
+                        {{end}}
+                        {{if gt $currentDay 0}}
+                            </div>
+                        {{end}}
+                    </div>
+
+                    <div class="itinerary-summary">
+                        <h3>Trip Summary</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="label">Total Duration:</span>
+                                <span class="value">{{.itinerary.Duration}} days</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Total Cost:</span>
+                                <span class="value highlight">₹{{.totalPrice}}</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Per Day Cost:</span>
+                                <span class="value">₹{{divide .totalPrice .itinerary.Duration}}</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Number of Items:</span>
+                                <span class="value">{{len .itinerary.Items}}</span>
+                            </div>
+                        </div>
+                    </div>
+                {{else}}
+                    <div class="alert alert-info">
+                        No items added to this itinerary yet.
+                    </div>
+                {{end}}
+
+                <div class="comments-section">
+                    <h2>Comments</h2>
+                    <form class="comment-form" onsubmit="postComment(event, '{{.itinerary.ID}}')">
+                        <textarea name="content" placeholder="Share your experience..." required></textarea>
+                        <button type="submit" class="btn-primary">Post Comment</button>
+                    </form>
+                    <div id="comments-list" class="comments-list"></div>
+                </div>
+            </div>
+        {{end}}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Itinerary Hub - Share Your Travel Stories</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

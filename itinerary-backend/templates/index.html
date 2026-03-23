@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Itineraries - Discover Amazing Journeys</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">🌍 Itinerary Hub</h1>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/create">Create Itinerary</a></li>
+                <li><a href="/search">Search</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h2>Discover Amazing Travel Itineraries</h2>
+            <p>Browse community-created travel plans or create your own</p>
+            <a href="#destinations" class="btn-primary">Browse Destinations</a>
+        </div>
+
+        {{if .error}}
+            <div class="alert alert-error">
+                {{.error}}
+            </div>
+        {{end}}
+
+        <div id="destinations" class="destinations-grid">
+            <h3>Popular Destinations</h3>
+            <div class="grid">
+                {{range .destinations}}
+                    <div class="destination-card">
+                        {{if .Image}}
+                            <img src="{{.Image}}" alt="{{.Name}}">
+                        {{else}}
+                            <div class="placeholder-image">📍 {{.Name}}</div>
+                        {{end}}
+                        <div class="card-content">
+                            <h4>{{.Name}}</h4>
+                            <p class="country">{{.Country}}</p>
+                            <p class="description">{{.Description}}</p>
+                            <a href="/destination/{{.ID}}" class="btn-secondary">View Itineraries</a>
+                        </div>
+                    </div>
+                {{end}}
+            </div>
+
+            {{if gt .totalPages 1}}
+                <div class="pagination">
+                    {{if gt .currentPage 1}}
+                        <a href="/?page={{sub .currentPage 1}}" class="btn-small">← Previous</a>
+                    {{end}}
+                    
+                    <span class="page-info">Page {{.currentPage}} of {{.totalPages}}</span>
+                    
+                    {{if lt .currentPage .totalPages}}
+                        <a href="/?page={{add .currentPage 1}}" class="btn-small">Next →</a>
+                    {{end}}
+                </div>
+            {{end}}
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Itinerary Hub - Share Your Travel Stories</p>
+    </footer>
+</body>
+</html>
