@@ -240,7 +240,8 @@ func (s *Service) PublishUserTrip(post *UserTripPost) error {
 
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
-	post.PublishedAt = time.Now()
+	now := time.Now()
+	post.PublishedAt = &now
 	post.Likes = 0
 	post.Views = 0
 

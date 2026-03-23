@@ -1,0 +1,50 @@
+# Go
+/itinerary-backend/itinerary-backend.exe
+/itinerary-backend/itinerary-backend.exe~
+*.exe
+*.exe~
+
+# Build artifacts
+/bin/
+/dist/
+*.o
+*.a
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+/itinerary-backend/log/
+logs/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.temp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Go specific
+go.sum (only if auto-generated, or remove this line if you want to track it)

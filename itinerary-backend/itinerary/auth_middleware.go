@@ -111,29 +111,26 @@ func extractUserIDFromToken(token string) string {
 	return "user-001" // Placeholder - should be replaced with proper token validation
 }
 
-// CheckAuth is a helper function to check if a request is authenticated
-func (c *gin.Context) CheckAuth() (string, bool) {
+// GetUserIDFromContext is a helper function to get user ID from context
+func GetUserIDFromContext(c *gin.Context) string {
 	userID, exists := c.Get("user_id")
-	if !exists || userID == "" {
-		return "", false
-	}
-	return userID.(string), true
-}
-
-// MustGetUserID is a helper function to get user ID from context
-func (c *gin.Context) MustGetUserID() string {
-	userID, _ := c.Get("user_id")
-	if userID == nil {
+	if !exists || userID == nil {
 		return ""
 	}
-	return userID.(string)
+	if id, ok := userID.(string); ok {
+		return id
+	}
+	return ""
 }
 
-// MustGetToken is a helper function to get token from context
-func (c *gin.Context) MustGetToken() string {
-	token, _ := c.Get("token")
-	if token == nil {
+// GetTokenFromContext is a helper function to get token from context
+func GetTokenFromContext(c *gin.Context) string {
+	token, exists := c.Get("token")
+	if !exists || token == nil {
 		return ""
 	}
-	return token.(string)
+	if t, ok := token.(string); ok {
+		return t
+	}
+	return ""
 }

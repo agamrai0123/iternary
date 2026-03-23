@@ -119,6 +119,16 @@ func NewInternalServerError(operation string, err error) *APIError {
 	return apiErr
 }
 
+// NewAuthenticationError creates an authentication error
+func NewAuthenticationError(message string) *APIError {
+	return NewAPIError(ErrUnauthorized, "Authentication Failed", message)
+}
+
+// NewAuthorizationError creates an authorization error
+func NewAuthorizationError(message string) *APIError {
+	return NewAPIError(ErrUnauthorized, "Authorization Failed", message)
+}
+
 // ToJSON converts error to JSON response
 func (e *APIError) ToJSON() map[string]interface{} {
 	return map[string]interface{}{

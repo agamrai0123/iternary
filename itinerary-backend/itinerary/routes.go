@@ -38,14 +38,14 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	// Auth pages (no authentication required)
 	router.GET("/login", handlers.LoginPage)
 	router.GET("/", handlers.LoginPage) // Redirect home to login
-	
+
 	// Protected pages (require authentication)
 	router.GET("/dashboard", authMiddleware.RequireAuth(), handlers.Dashboard)
 	router.GET("/plan-trip", authMiddleware.RequireAuth(), handlers.PlanTripPage)
 	router.GET("/my-trips", authMiddleware.RequireAuth(), handlers.MyTripsPage)
 	router.GET("/my-trips/:id", authMiddleware.RequireAuth(), handlers.MyTripDetail)
 	router.GET("/community", authMiddleware.OptionalAuth(), handlers.CommunityPage)
-	
+
 	// Legacy pages (kept for backward compatibility)
 	router.GET("/destination/:id", handlers.DestinationDetail)
 	router.GET("/itinerary/:id", handlers.ItineraryDetail)
@@ -89,6 +89,9 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	router.POST("/auth/logout", authHandlers.Logout)
 	router.GET("/auth/profile", authHandlers.GetProfile)
 	router.PUT("/auth/profile", authHandlers.UpdateProfile)
+
+	// ==================== Group Collaboration Routes (Phase A) ====================
+	RegisterGroupRoutes(router, service, authMiddleware, logger)
 
 	return router
 }
