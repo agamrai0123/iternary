@@ -39,28 +39,28 @@ func TestFormatDate(t *testing.T) {
 // TestFormatCurrency verifies currency formatting
 func TestFormatCurrency(t *testing.T) {
 	tests := []struct {
-		name            string
-		amount          float64
-		expectedPrefix  string
-		expectedSuffix  string
+		name           string
+		amount         float64
+		expectedPrefix string
+		expectedSuffix string
 	}{
 		{
-			name:            "format rupees",
-			amount:          50000,
-			expectedPrefix:  "₹",
-			expectedSuffix:  "0",
+			name:           "format rupees",
+			amount:         50000,
+			expectedPrefix: "₹",
+			expectedSuffix: "0",
 		},
 		{
-			name:            "format with decimals",
-			amount:          1250.50,
-			expectedPrefix:  "₹",
-			expectedSuffix:  "50",
+			name:           "format with decimals",
+			amount:         1250.50,
+			expectedPrefix: "₹",
+			expectedSuffix: "50",
 		},
 		{
-			name:            "zero amount",
-			amount:          0,
-			expectedPrefix:  "₹",
-			expectedSuffix:  "0",
+			name:           "zero amount",
+			amount:         0,
+			expectedPrefix: "₹",
+			expectedSuffix: "0",
 		},
 	}
 
@@ -83,28 +83,28 @@ func TestFormatCurrency(t *testing.T) {
 // TestFormatRating verifies rating formatting
 func TestFormatRating(t *testing.T) {
 	tests := []struct {
-		name            string
-		rating          float64
-		expectedMin     float64
-		expectedMax     float64
+		name        string
+		rating      float64
+		expectedMin float64
+		expectedMax float64
 	}{
 		{
-			name:            "5 star rating",
-			rating:          5.0,
-			expectedMin:     5.0,
-			expectedMax:     5.0,
+			name:        "5 star rating",
+			rating:      5.0,
+			expectedMin: 5.0,
+			expectedMax: 5.0,
 		},
 		{
-			name:            "half star rating",
-			rating:          4.5,
-			expectedMin:     4.0,
-			expectedMax:     5.0,
+			name:        "half star rating",
+			rating:      4.5,
+			expectedMin: 4.0,
+			expectedMax: 5.0,
 		},
 		{
-			name:            "1 star rating",
-			rating:          1.0,
-			expectedMin:     1.0,
-			expectedMax:     1.0,
+			name:        "1 star rating",
+			rating:      1.0,
+			expectedMin: 1.0,
+			expectedMax: 1.0,
 		},
 	}
 
@@ -120,28 +120,28 @@ func TestFormatRating(t *testing.T) {
 // TestTruncateString verifies string truncation
 func TestTruncateString(t *testing.T) {
 	tests := []struct {
-		name            string
-		input           string
-		length          int
-		expectedMaxLen  int
+		name           string
+		input          string
+		length         int
+		expectedMaxLen int
 	}{
 		{
-			name:            "truncate long string",
-			input:           "This is a very long string that needs truncation",
-			length:          20,
-			expectedMaxLen:  20,
+			name:           "truncate long string",
+			input:          "This is a very long string that needs truncation",
+			length:         20,
+			expectedMaxLen: 20,
 		},
 		{
-			name:            "string shorter than limit",
-			input:           "Short",
-			length:          20,
-			expectedMaxLen:  5,
+			name:           "string shorter than limit",
+			input:          "Short",
+			length:         20,
+			expectedMaxLen: 5,
 		},
 		{
-			name:            "empty string",
-			input:           "",
-			length:          20,
-			expectedMaxLen:  0,
+			name:           "empty string",
+			input:          "",
+			length:         20,
+			expectedMaxLen: 0,
 		},
 	}
 
@@ -199,24 +199,24 @@ func TestFormatDuration(t *testing.T) {
 // TestFormatDayOfWeek verifies day of week formatting
 func TestFormatDayOfWeek(t *testing.T) {
 	tests := []struct {
-		name       string
-		dayOfWeek  int
-		expected   string
+		name      string
+		dayOfWeek int
+		expected  string
 	}{
 		{
-			name:       "Monday",
-			dayOfWeek:  int(time.Monday),
-			expected:   "Monday",
+			name:      "Monday",
+			dayOfWeek: int(time.Monday),
+			expected:  "Monday",
 		},
 		{
-			name:       "Friday",
-			dayOfWeek:  int(time.Friday),
-			expected:   "Friday",
+			name:      "Friday",
+			dayOfWeek: int(time.Friday),
+			expected:  "Friday",
 		},
 		{
-			name:       "Sunday",
-			dayOfWeek:  int(time.Sunday),
-			expected:   "Sunday",
+			name:      "Sunday",
+			dayOfWeek: int(time.Sunday),
+			expected:  "Sunday",
 		},
 	}
 
@@ -238,7 +238,7 @@ func formatPrice(amount float64) string {
 	if amount == 0 {
 		return "0"
 	}
-	if amount == int64(amount) {
+	if amount == float64(int64(amount)) {
 		return formatInt(int64(amount))
 	}
 	return formatFloat(amount)

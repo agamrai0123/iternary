@@ -13,24 +13,24 @@ import (
 func (s *Service) CreateGroupTrip(userID string, req *CreateGroupTripRequest) (*GroupTrip, error) {
 	// Validate input
 	if req.Budget <= 0 {
-		return nil, NewAPIError(ErrValidationError, "budget must be greater than 0", nil)
+		return nil, NewAPIError(ErrValidationError, "budget must be greater than 0", "")
 	}
 	if req.Duration <= 0 {
-		return nil, NewAPIError(ErrValidationError, "duration must be greater than 0", nil)
+		return nil, NewAPIError(ErrValidationError, "duration must be greater than 0", "")
 	}
 	if req.Title == "" {
-		return nil, NewAPIError(ErrValidationError, "title is required", nil)
+		return nil, NewAPIError(ErrValidationError, "title is required", "")
 	}
 
 	// Create group trip
 	groupTrip := &GroupTrip{
-		Title:          req.Title,
-		DestinationID:  req.DestinationID,
-		OwnerID:        userID,
-		Budget:         req.Budget,
-		Duration:       req.Duration,
-		StartDate:      req.StartDate,
-		Status:         GroupTripStatusDraft,
+		Title:         req.Title,
+		DestinationID: req.DestinationID,
+		OwnerID:       userID,
+		Budget:        req.Budget,
+		Duration:      req.Duration,
+		StartDate:     req.StartDate,
+		Status:        GroupTripStatusDraft,
 	}
 
 	if err := s.db.CreateGroupTrip(groupTrip); err != nil {
@@ -62,17 +62,17 @@ func (s *Service) GetGroupTrip(id string) (*GroupTrip, error) {
 		return nil, err
 	}
 
-	// Fetch owner
-	owner, err := s.db.GetUser(groupTrip.OwnerID)
-	if err == nil {
-		groupTrip.Owner = owner
-	}
+	// Fetch owner - TODO: Implement GetUser method
+	// owner, err := s.db.GetUser(groupTrip.OwnerID)
+	// if err == nil {
+	//	groupTrip.Owner = owner
+	// }
 
-	// Fetch destination
-	destination, err := s.db.GetDestination(groupTrip.DestinationID)
-	if err == nil {
-		groupTrip.Destination = destination
-	}
+	// Fetch destination - TODO: Implement GetDestination method
+	// destination, err := s.db.GetDestination(groupTrip.DestinationID)
+	// if err == nil {
+	//	groupTrip.Destination = destination
+	// }
 
 	// Fetch members
 	members, err := s.db.GetGroupMembers(groupTrip.ID)
@@ -109,7 +109,7 @@ func (s *Service) UpdateGroupTrip(tripID string, userID string, req *UpdateGroup
 	}
 
 	if groupTrip.OwnerID != userID {
-		return NewAPIError(ErrForbidden, "only the owner can update the group trip", nil)
+		return NewAPIError(ErrForbidden, "only the owner can update the group trip", "")
 	}
 
 	return s.db.UpdateGroupTrip(tripID, req)
@@ -124,7 +124,7 @@ func (s *Service) DeleteGroupTrip(tripID string, userID string) error {
 	}
 
 	if groupTrip.OwnerID != userID {
-		return NewAPIError(ErrForbidden, "only the owner can delete the group trip", nil)
+		return NewAPIError(ErrForbidden, "only the owner can delete the group trip", "")
 	}
 
 	return s.db.DeleteGroupTrip(tripID)
@@ -143,13 +143,13 @@ func (s *Service) InviteMemberToGroup(tripID string, userID string, targetUserID
 	}
 
 	if member.Role != GroupMemberRoleOwner && member.Role != GroupMemberRoleEditor {
-		return NewAPIError(ErrForbidden, "only owners and editors can invite members", nil)
+		return NewAPIError(ErrForbidden, "only owners and editors can invite members", "")
 	}
 
 	// Check if user already exists in group
 	existing, _ := s.db.GetGroupMember(tripID, targetUserID)
 	if existing != nil {
-		return NewAPIError(ErrConflict, "user is already a member of this group trip", nil)
+		return NewAPIError(ErrConflict, "user is already a member of this group trip", "")
 	}
 
 	// Add member with pending status
@@ -165,7 +165,7 @@ func (s *Service) RespondToGroupInvite(tripID string, userID string, accept bool
 	}
 
 	if member.Status != GroupMemberStatusPending {
-		return NewAPIError(ErrValidationError, "member is not pending", nil)
+		return NewAPIError(ErrValidationError, "member is not pending", "")
 	}
 
 	if accept {
@@ -184,13 +184,13 @@ func (s *Service) RemoveGroupMember(tripID string, userID string, targetUserID s
 	}
 
 	if member.Role != GroupMemberRoleOwner {
-		return NewAPIError(ErrForbidden, "only the owner can remove members", nil)
+		return NewAPIError(ErrForbidden, "only the owner can remove members", "")
 	}
 
 	// Can't remove owner
 	targetMember, _ := s.db.GetGroupMember(tripID, targetUserID)
 	if targetMember != nil && targetMember.Role == GroupMemberRoleOwner {
-		return NewAPIError(ErrValidationError, "cannot remove the owner", nil)
+		return NewAPIError(ErrValidationError, "cannot remove the owner", "")
 	}
 
 	return s.db.RemoveGroupMember(tripID, targetUserID)
@@ -204,7 +204,7 @@ func (s *Service) LeaveGroup(tripID string, userID string) error {
 	}
 
 	if member.Role == GroupMemberRoleOwner {
-		return NewAPIError(ErrValidationError, "owner cannot leave the group. Transfer ownership first", nil)
+		return NewAPIError(ErrValidationError, "owner cannot leave the group. Transfer ownership first", "")
 	}
 
 	return s.db.UpdateGroupMemberStatus(member.ID, GroupMemberStatusLeft)
@@ -219,15 +219,15 @@ func (s *Service) AddExpense(tripID string, userID string, req *CreateExpenseReq
 	// Verify user is member
 	_, err := s.db.GetGroupMember(tripID, userID)
 	if err != nil {
-		return nil, NewAPIError(ErrForbidden, "user is not a member of this group trip", nil)
+		return nil, NewAPIError(ErrForbidden, "user is not a member of this group trip", "")
 	}
 
 	// Validate input
 	if req.Amount <= 0 {
-		return nil, NewAPIError(ErrValidationError, "amount must be greater than 0", nil)
+		return nil, NewAPIError(ErrValidationError, "amount must be greater than 0", "")
 	}
 	if len(req.SplitAmong) == 0 {
-		return nil, NewAPIError(ErrValidationError, "must split among at least 1 person", nil)
+		return nil, NewAPIError(ErrValidationError, "must split among at least 1 person", "")
 	}
 
 	// Create expense
@@ -438,12 +438,12 @@ func (s *Service) CreatePoll(tripID string, userID string, req *CreatePollReques
 	// Verify user is member
 	_, err := s.db.GetGroupMember(tripID, userID)
 	if err != nil {
-		return nil, NewAPIError(ErrForbidden, "user is not a member of this group trip", nil)
+		return nil, NewAPIError(ErrForbidden, "user is not a member of this group trip", "")
 	}
 
 	// Validate options
 	if len(req.Options) < 2 {
-		return nil, NewAPIError(ErrValidationError, "poll must have at least 2 options", nil)
+		return nil, NewAPIError(ErrValidationError, "poll must have at least 2 options", "")
 	}
 
 	// Create poll
@@ -483,11 +483,11 @@ func (s *Service) GetPoll(pollID string) (*Poll, error) {
 		return nil, err
 	}
 
-	// Fetch creator
-	creator, err := s.db.GetUser(poll.CreatedBy)
-	if err == nil {
-		poll.Creator = creator
-	}
+	// Fetch creator - TODO: Implement GetUser method
+	// creator, err := s.db.GetUser(poll.CreatedBy)
+	// if err == nil {
+	//	poll.Creator = creator
+	// }
 
 	// Fetch options
 	options, err := s.db.GetPollOptions(pollID)
@@ -507,7 +507,7 @@ func (s *Service) VoteOnPoll(pollID string, optionID string, userID string) erro
 	}
 
 	if existingVote != nil {
-		return NewAPIError(ErrConflict, "user has already voted on this poll", nil)
+		return NewAPIError(ErrConflict, "user has already voted on this poll", "")
 	}
 
 	// Create vote

@@ -838,3 +838,42 @@ func (d *Database) GetCommunityPosts(page, pageSize int) ([]UserTripPost, error)
 
 	return posts, rows.Err()
 }
+
+// GetUserByID retrieves a user by ID
+func (d *Database) GetUserByID(userID string) (*User, error) {
+	query := `SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?`
+
+	row := d.conn.QueryRow(query, userID)
+	var user User
+	err := row.Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// GetDestinationByID retrieves a destination by ID
+func (d *Database) GetDestinationByID(destinationID string) (*Destination, error) {
+	query := `SELECT id, name, country, description, image_url, created_at, updated_at FROM destinations WHERE id = ?`
+
+	row := d.conn.QueryRow(query, destinationID)
+	var dest Destination
+	var imageURL *string
+	err := row.Scan(&dest.ID, &dest.Name, &dest.Country, &dest.Description, &imageURL, &dest.CreatedAt, &dest.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("destination not found")
+		}
+		return nil, fmt.Errorf("failed to get destination: %w", err)
+	}
+
+	if imageURL != nil {
+		dest.Image = *imageURL
+	}
+
+	return &dest, nil
+}

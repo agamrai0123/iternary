@@ -271,13 +271,13 @@ const (
 // Validate checks if GroupTrip is valid
 func (gt *GroupTrip) Validate() error {
 	if gt.Title == "" {
-		return NewAPIError(ErrValidationError, "title is required", nil)
+		return NewAPIError(ErrValidationError, "title is required", "")
 	}
 	if gt.Budget <= 0 {
-		return NewAPIError(ErrValidationError, "budget must be greater than 0", nil)
+		return NewAPIError(ErrValidationError, "budget must be greater than 0", "")
 	}
 	if gt.Duration <= 0 {
-		return NewAPIError(ErrValidationError, "duration must be greater than 0", nil)
+		return NewAPIError(ErrValidationError, "duration must be greater than 0", "")
 	}
 	return nil
 }
@@ -285,13 +285,13 @@ func (gt *GroupTrip) Validate() error {
 // Validate checks if Expense is valid
 func (e *Expense) Validate() error {
 	if e.Description == "" {
-		return NewAPIError(ErrValidationError, "description is required", nil)
+		return NewAPIError(ErrValidationError, "description is required", "")
 	}
 	if e.Amount <= 0 {
-		return NewAPIError(ErrValidationError, "amount must be greater than 0", nil)
+		return NewAPIError(ErrValidationError, "amount must be greater than 0", "")
 	}
 	if e.PaidBy == "" {
-		return NewAPIError(ErrValidationError, "paid_by is required", nil)
+		return NewAPIError(ErrValidationError, "paid_by is required", "")
 	}
 	return nil
 }
@@ -299,7 +299,7 @@ func (e *Expense) Validate() error {
 // Validate checks if ExpenseSplit is valid
 func (es *ExpenseSplit) Validate() error {
 	if es.AmountOwed < 0 {
-		return NewAPIError(ErrValidationError, "amount_owed cannot be negative", nil)
+		return NewAPIError(ErrValidationError, "amount_owed cannot be negative", "")
 	}
 	return nil
 }
@@ -307,10 +307,10 @@ func (es *ExpenseSplit) Validate() error {
 // Validate checks if Poll is valid
 func (p *Poll) Validate() error {
 	if p.Question == "" {
-		return NewAPIError(ErrValidationError, "question is required", nil)
+		return NewAPIError(ErrValidationError, "question is required", "")
 	}
 	if len(p.Options) < 2 {
-		return NewAPIError(ErrValidationError, "poll must have at least 2 options", nil)
+		return NewAPIError(ErrValidationError, "poll must have at least 2 options", "")
 	}
 	return nil
 }
@@ -318,16 +318,16 @@ func (p *Poll) Validate() error {
 // Validate checks if Settlement is valid
 func (s *Settlement) Validate() error {
 	if s.DebtorID == "" {
-		return NewAPIError(ErrValidationError, "debtor_id is required", nil)
+		return NewAPIError(ErrValidationError, "debtor_id is required", "")
 	}
 	if s.CreditorID == "" {
-		return NewAPIError(ErrValidationError, "creditor_id is required", nil)
+		return NewAPIError(ErrValidationError, "creditor_id is required", "")
 	}
 	if s.Amount <= 0 {
-		return NewAPIError(ErrValidationError, "amount must be greater than 0", nil)
+		return NewAPIError(ErrValidationError, "amount must be greater than 0", "")
 	}
 	if s.DebtorID == s.CreditorID {
-		return NewAPIError(ErrValidationError, "debtor and creditor cannot be the same person", nil)
+		return NewAPIError(ErrValidationError, "debtor and creditor cannot be the same person", "")
 	}
 	return nil
 }

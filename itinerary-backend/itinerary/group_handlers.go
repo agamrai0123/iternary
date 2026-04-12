@@ -15,14 +15,14 @@ func (s *Service) CreateGroupTripHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("CreateGroupTripHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
 	var req CreateGroupTripRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("CreateGroupTripHandler: invalid request body", "error", err.Error(), "user_id", userID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -32,7 +32,7 @@ func (s *Service) CreateGroupTripHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("CreateGroupTripHandler: failed to create group trip", "error", err.Error(), "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (s *Service) GetGroupTripHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetGroupTripHandler: failed to retrieve group trip", "error", err.Error(), "trip_id", tripID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (s *Service) GetUserGroupTripsHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("GetUserGroupTripsHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -74,7 +74,7 @@ func (s *Service) GetUserGroupTripsHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetUserGroupTripsHandler: failed to retrieve user group trips", "error", err.Error(), "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (s *Service) UpdateGroupTripHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("UpdateGroupTripHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -96,7 +96,7 @@ func (s *Service) UpdateGroupTripHandler(c *gin.Context) {
 	var req UpdateGroupTripRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("UpdateGroupTripHandler: invalid request body", "error", err.Error(), "user_id", userID, "trip_id", tripID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -105,7 +105,7 @@ func (s *Service) UpdateGroupTripHandler(c *gin.Context) {
 	if err := s.UpdateGroupTrip(tripID, userID, &req); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("UpdateGroupTripHandler: failed to update group trip", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (s *Service) DeleteGroupTripHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("DeleteGroupTripHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -129,12 +129,12 @@ func (s *Service) DeleteGroupTripHandler(c *gin.Context) {
 	if err := s.DeleteGroupTrip(tripID, userID); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("DeleteGroupTripHandler: failed to delete group trip", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
 	s.logger.Info("DeleteGroupTripHandler: group trip deleted successfully", "trip_id", tripID, "user_id", userID)
-	c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusNoContent, "")
 }
 
 // ============================================================================
@@ -146,7 +146,7 @@ func (s *Service) InviteMemberHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("InviteMemberHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -155,7 +155,7 @@ func (s *Service) InviteMemberHandler(c *gin.Context) {
 	var req AddGroupMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("InviteMemberHandler: invalid request body", "error", err.Error(), "user_id", userID, "trip_id", tripID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -164,7 +164,7 @@ func (s *Service) InviteMemberHandler(c *gin.Context) {
 	if err := s.InviteMemberToGroup(tripID, userID, req.UserID, req.Role); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("InviteMemberHandler: failed to invite member", "error", err.Error(), "trip_id", tripID, "new_member", req.UserID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -183,7 +183,7 @@ func (s *Service) GetGroupMembersHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetGroupMembersHandler: failed to retrieve members", "error", err.Error(), "trip_id", tripID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -196,7 +196,7 @@ func (s *Service) RespondInvitationHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("RespondInvitationHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -205,7 +205,7 @@ func (s *Service) RespondInvitationHandler(c *gin.Context) {
 	var req RespondToInvitationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("RespondInvitationHandler: invalid request body", "error", err.Error(), "user_id", userID, "trip_id", tripID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -215,7 +215,7 @@ func (s *Service) RespondInvitationHandler(c *gin.Context) {
 	if err := s.RespondToGroupInvite(tripID, userID, accept); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("RespondInvitationHandler: failed to respond to invitation", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -228,7 +228,7 @@ func (s *Service) RemoveGroupMemberHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("RemoveGroupMemberHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -240,12 +240,12 @@ func (s *Service) RemoveGroupMemberHandler(c *gin.Context) {
 	if err := s.RemoveGroupMember(tripID, userID, targetUserID); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("RemoveGroupMemberHandler: failed to remove member", "error", err.Error(), "trip_id", tripID, "target_user", targetUserID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
 	s.logger.Info("RemoveGroupMemberHandler: member removed successfully", "trip_id", tripID, "target_user", targetUserID)
-	c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusNoContent, "")
 }
 
 // LeaveGroupHandler handles POST /api/group-trips/:id/members/leave
@@ -253,7 +253,7 @@ func (s *Service) LeaveGroupHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("LeaveGroupHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -264,7 +264,7 @@ func (s *Service) LeaveGroupHandler(c *gin.Context) {
 	if err := s.LeaveGroup(tripID, userID); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("LeaveGroupHandler: failed to leave group", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -281,7 +281,7 @@ func (s *Service) AddExpenseHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("AddExpenseHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -290,7 +290,7 @@ func (s *Service) AddExpenseHandler(c *gin.Context) {
 	var req CreateExpenseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("AddExpenseHandler: invalid request body", "error", err.Error(), "user_id", userID, "trip_id", tripID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -300,7 +300,7 @@ func (s *Service) AddExpenseHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("AddExpenseHandler: failed to add expense", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -319,7 +319,7 @@ func (s *Service) GetGroupExpensesHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetGroupExpensesHandler: failed to retrieve expenses", "error", err.Error(), "trip_id", tripID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -338,7 +338,7 @@ func (s *Service) GetExpenseReportHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetExpenseReportHandler: failed to generate report", "error", err.Error(), "trip_id", tripID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -355,7 +355,7 @@ func (s *Service) CreatePollHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("CreatePollHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -364,7 +364,7 @@ func (s *Service) CreatePollHandler(c *gin.Context) {
 	var req CreatePollRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("CreatePollHandler: invalid request body", "error", err.Error(), "user_id", userID, "trip_id", tripID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -374,7 +374,7 @@ func (s *Service) CreatePollHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("CreatePollHandler: failed to create poll", "error", err.Error(), "trip_id", tripID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -393,7 +393,7 @@ func (s *Service) GetPollHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetPollHandler: failed to retrieve poll", "error", err.Error(), "poll_id", pollID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -412,7 +412,7 @@ func (s *Service) GetGroupPollsHandler(c *gin.Context) {
 	if err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("GetGroupPollsHandler: failed to retrieve polls", "error", err.Error(), "trip_id", tripID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 
@@ -425,7 +425,7 @@ func (s *Service) VotePollHandler(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("VotePollHandler: unauthorized access attempt")
-		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", nil))
+		c.JSON(http.StatusUnauthorized, NewAPIError(ErrUnauthorized, "user not authenticated", ""))
 		return
 	}
 
@@ -434,7 +434,7 @@ func (s *Service) VotePollHandler(c *gin.Context) {
 	var req VotePollRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		s.logger.Warn("VotePollHandler: invalid request body", "error", err.Error(), "user_id", userID, "poll_id", pollID)
-		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", map[string]string{"error": err.Error()}))
+		c.JSON(http.StatusBadRequest, NewAPIError(ErrValidationError, "invalid request body", err.Error()))
 		return
 	}
 
@@ -443,7 +443,7 @@ func (s *Service) VotePollHandler(c *gin.Context) {
 	if err := s.VoteOnPoll(pollID, req.OptionID, userID); err != nil {
 		apiErr := err.(*APIError)
 		s.logger.Error("VotePollHandler: failed to vote on poll", "error", err.Error(), "poll_id", pollID, "user_id", userID)
-		c.JSON(getHTTPStatusCode(apiErr.Code), apiErr)
+		c.JSON(GetStatusCode(apiErr.Code), apiErr)
 		return
 	}
 

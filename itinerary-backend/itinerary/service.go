@@ -264,3 +264,47 @@ func (s *Service) GetCommunityPosts(page, pageSize int) ([]UserTripPost, error) 
 
 	return s.db.GetCommunityPosts(page, pageSize)
 }
+
+// GetUser retrieves a user by ID
+func (s *Service) GetUser(userID string) (*User, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user_id is required")
+	}
+
+	s.logger.Debug("retrieving user", "user_id", userID)
+
+	user, err := s.db.GetUserByID(userID)
+	if err != nil {
+		s.logger.Error("failed to get user", "user_id", userID, "error", err.Error())
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	if user == nil {
+		s.logger.Warn("user not found", "user_id", userID)
+		return nil, fmt.Errorf("user not found")
+	}
+
+	return user, nil
+}
+
+// GetDestination retrieves a destination by ID
+func (s *Service) GetDestination(destinationID string) (*Destination, error) {
+	if destinationID == "" {
+		return nil, fmt.Errorf("destination_id is required")
+	}
+
+	s.logger.Debug("retrieving destination", "destination_id", destinationID)
+
+	destination, err := s.db.GetDestinationByID(destinationID)
+	if err != nil {
+		s.logger.Error("failed to get destination", "destination_id", destinationID, "error", err.Error())
+		return nil, fmt.Errorf("failed to get destination: %w", err)
+	}
+
+	if destination == nil {
+		s.logger.Warn("destination not found", "destination_id", destinationID)
+		return nil, fmt.Errorf("destination not found")
+	}
+
+	return destination, nil
+}

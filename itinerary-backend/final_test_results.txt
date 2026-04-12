@@ -1,0 +1,18 @@
+# github.com/yourusername/itinerary-backend/itinerary [github.com/yourusername/itinerary-backend/itinerary.test]
+itinerary\config_test.go:10:12: not enough arguments in call to LoadConfig
+	have ()
+	want (string)
+itinerary\config_test.go:10:12: assignment mismatch: 1 variable but LoadConfig returns 2 values
+itinerary\config_test.go:19:12: not enough arguments in call to LoadConfig
+	have ()
+	want (string)
+itinerary\config_test.go:19:12: assignment mismatch: 1 variable but LoadConfig returns 2 values
+itinerary\config_test.go:30:14: c.Port undefined (type *Config has no field or method Port)
+itinerary\config_test.go:37:14: c.Env undefined (type *Config has no field or method Env)
+itinerary\config_test.go:54:3: unknown field Port in struct literal of type Config
+itinerary\config_test.go:55:3: unknown field Env in struct literal of type Config
+itinerary\config_test.go:58:12: config.Port undefined (type *Config has no field or method Port)
+itinerary\config_test.go:59:49: config.Port undefined (type *Config has no field or method Port)
+itinerary\config_test.go:59:49: too many errors
+FAIL	github.com/yourusername/itinerary-backend/itinerary [build failed]
+FAIL

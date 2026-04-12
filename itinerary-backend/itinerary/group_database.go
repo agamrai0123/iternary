@@ -21,9 +21,9 @@ func (db *Database) CreateGroupTrip(groupTrip *GroupTrip) error {
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, groupTrip.Title, groupTrip.DestinationID, groupTrip.OwnerID, groupTrip.Budget, groupTrip.Duration, groupTrip.StartDate, "draft", now, now)
+	_, err := db.conn.Exec(query, id, groupTrip.Title, groupTrip.DestinationID, groupTrip.OwnerID, groupTrip.Budget, groupTrip.Duration, groupTrip.StartDate, "draft", now, now)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to create group trip", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to create group trip: "+err.Error(), "")
 	}
 
 	groupTrip.ID = id
@@ -42,15 +42,15 @@ func (db *Database) GetGroupTrip(id string) (*GroupTrip, error) {
 		WHERE id = ?
 	`
 
-	row := db.query(query, id)
+	row := db.conn.QueryRow(query, id)
 	groupTrip := &GroupTrip{}
 
 	err := row.Scan(&groupTrip.ID, &groupTrip.Title, &groupTrip.DestinationID, &groupTrip.OwnerID, &groupTrip.Budget, &groupTrip.Duration, &groupTrip.StartDate, &groupTrip.Status, &groupTrip.CreatedAt, &groupTrip.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, NewAPIError(ErrNotFound, "group trip not found", nil)
+			return nil, NewAPIError(ErrNotFound, "group trip not found", "")
 		}
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group trip", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group trip: "+err.Error(), "")
 	}
 
 	return groupTrip, nil
@@ -66,9 +66,9 @@ func (db *Database) GetUserGroupTrips(userID string) ([]*GroupTrip, error) {
 		ORDER BY gt.created_at DESC
 	`
 
-	rows, err := db.queryRows(query, userID)
+	rows, err := db.conn.Query(query, userID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group trips", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group trips: "+err.Error(), "")
 	}
 	defer rows.Close()
 
@@ -77,7 +77,7 @@ func (db *Database) GetUserGroupTrips(userID string) ([]*GroupTrip, error) {
 		groupTrip := &GroupTrip{}
 		err := rows.Scan(&groupTrip.ID, &groupTrip.Title, &groupTrip.DestinationID, &groupTrip.OwnerID, &groupTrip.Budget, &groupTrip.Duration, &groupTrip.StartDate, &groupTrip.Status, &groupTrip.CreatedAt, &groupTrip.UpdatedAt)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan group trip", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan group trip: "+err.Error(), "")
 		}
 		groupTrips = append(groupTrips, groupTrip)
 	}
@@ -98,9 +98,9 @@ func (db *Database) UpdateGroupTrip(id string, updates *UpdateGroupTripRequest) 
 		WHERE id = ?
 	`
 
-	_, err := db.exec(query, updates.Title, updates.Budget, updates.Duration, updates.StartDate, updates.Status, time.Now(), id)
+	_, err := db.conn.Exec(query, updates.Title, updates.Budget, updates.Duration, updates.StartDate, updates.Status, time.Now(), id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to update group trip", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to update group trip: "+err.Error(), "")
 	}
 
 	return nil
@@ -110,9 +110,9 @@ func (db *Database) UpdateGroupTrip(id string, updates *UpdateGroupTripRequest) 
 func (db *Database) DeleteGroupTrip(id string) error {
 	query := `DELETE FROM group_trips WHERE id = ?`
 
-	_, err := db.exec(query, id)
+	_, err := db.conn.Exec(query, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to delete group trip", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to delete group trip", err.Error())
 	}
 
 	return nil
@@ -132,9 +132,9 @@ func (db *Database) AddGroupMember(groupTripID string, userID string, role strin
 		VALUES (?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, groupTripID, userID, role, now, GroupMemberStatusPending)
+	_, err := db.conn.Exec(query, id, groupTripID, userID, role, now, GroupMemberStatusPending)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to add group member", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to add group member", err.Error())
 	}
 
 	return &GroupMember{
@@ -156,9 +156,9 @@ func (db *Database) GetGroupMembers(groupTripID string) ([]*GroupMember, error) 
 		ORDER BY joined_at ASC
 	`
 
-	rows, err := db.queryRows(query, groupTripID)
+	rows, err := db.conn.Query(query, groupTripID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group members", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group members", err.Error())
 	}
 	defer rows.Close()
 
@@ -167,7 +167,7 @@ func (db *Database) GetGroupMembers(groupTripID string) ([]*GroupMember, error) 
 		member := &GroupMember{}
 		err := rows.Scan(&member.ID, &member.GroupTripID, &member.UserID, &member.Role, &member.JoinedAt, &member.Status)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan group member", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan group member", err.Error())
 		}
 		members = append(members, member)
 	}
@@ -183,15 +183,15 @@ func (db *Database) GetGroupMember(groupTripID string, userID string) (*GroupMem
 		WHERE group_trip_id = ? AND user_id = ?
 	`
 
-	row := db.query(query, groupTripID, userID)
+	row := db.conn.QueryRow(query, groupTripID, userID)
 	member := &GroupMember{}
 
 	err := row.Scan(&member.ID, &member.GroupTripID, &member.UserID, &member.Role, &member.JoinedAt, &member.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, NewAPIError(ErrNotFound, "group member not found", nil)
+			return nil, NewAPIError(ErrNotFound, "group member not found", "")
 		}
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group member", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group member", err.Error())
 	}
 
 	return member, nil
@@ -201,9 +201,9 @@ func (db *Database) GetGroupMember(groupTripID string, userID string) (*GroupMem
 func (db *Database) UpdateGroupMemberRole(id string, role string) error {
 	query := `UPDATE group_members SET role = ? WHERE id = ?`
 
-	_, err := db.exec(query, role, id)
+	_, err := db.conn.Exec(query, role, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to update group member role", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to update group member role", err.Error())
 	}
 
 	return nil
@@ -213,9 +213,9 @@ func (db *Database) UpdateGroupMemberRole(id string, role string) error {
 func (db *Database) UpdateGroupMemberStatus(id string, status string) error {
 	query := `UPDATE group_members SET status = ? WHERE id = ?`
 
-	_, err := db.exec(query, status, id)
+	_, err := db.conn.Exec(query, status, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to update group member status", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to update group member status", err.Error())
 	}
 
 	return nil
@@ -225,9 +225,9 @@ func (db *Database) UpdateGroupMemberStatus(id string, status string) error {
 func (db *Database) RemoveGroupMember(groupTripID string, userID string) error {
 	query := `DELETE FROM group_members WHERE group_trip_id = ? AND user_id = ?`
 
-	_, err := db.exec(query, groupTripID, userID)
+	_, err := db.conn.Exec(query, groupTripID, userID)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to remove group member", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to remove group member", err.Error())
 	}
 
 	return nil
@@ -252,9 +252,9 @@ func (db *Database) CreateExpense(expense *Expense) error {
 		expense.PaidDate = &today
 	}
 
-	_, err := db.exec(query, id, expense.GroupTripID, expense.Description, expense.Amount, expense.PaidBy, expense.Category, expense.PaidDate, ExpenseStatusPending, now)
+	_, err := db.conn.Exec(query, id, expense.GroupTripID, expense.Description, expense.Amount, expense.PaidBy, expense.Category, expense.PaidDate, ExpenseStatusPending, now)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to create expense", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to create expense", err.Error())
 	}
 
 	expense.ID = id
@@ -272,15 +272,15 @@ func (db *Database) GetExpense(id string) (*Expense, error) {
 		WHERE id = ?
 	`
 
-	row := db.query(query, id)
+	row := db.conn.QueryRow(query, id)
 	expense := &Expense{}
 
 	err := row.Scan(&expense.ID, &expense.GroupTripID, &expense.Description, &expense.Amount, &expense.PaidBy, &expense.Category, &expense.PaidDate, &expense.Status, &expense.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, NewAPIError(ErrNotFound, "expense not found", nil)
+			return nil, NewAPIError(ErrNotFound, "expense not found", "")
 		}
-		return nil, NewAPIError(ErrDatabaseError, "failed to get expense", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get expense", err.Error())
 	}
 
 	return expense, nil
@@ -295,9 +295,9 @@ func (db *Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
 		ORDER BY created_at DESC
 	`
 
-	rows, err := db.queryRows(query, groupTripID)
+	rows, err := db.conn.Query(query, groupTripID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group expenses", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group expenses", err.Error())
 	}
 	defer rows.Close()
 
@@ -306,7 +306,7 @@ func (db *Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
 		expense := &Expense{}
 		err := rows.Scan(&expense.ID, &expense.GroupTripID, &expense.Description, &expense.Amount, &expense.PaidBy, &expense.Category, &expense.PaidDate, &expense.Status, &expense.CreatedAt)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan expense", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan expense", err.Error())
 		}
 		expenses = append(expenses, expense)
 	}
@@ -318,9 +318,9 @@ func (db *Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
 func (db *Database) UpdateExpenseStatus(id string, status string) error {
 	query := `UPDATE expenses SET status = ? WHERE id = ?`
 
-	_, err := db.exec(query, status, id)
+	_, err := db.conn.Exec(query, status, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to update expense status", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to update expense status", err.Error())
 	}
 
 	return nil
@@ -339,9 +339,9 @@ func (db *Database) CreateExpenseSplit(split *ExpenseSplit) error {
 		VALUES (?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, split.ExpenseID, split.UserID, split.AmountOwed)
+	_, err := db.conn.Exec(query, id, split.ExpenseID, split.UserID, split.AmountOwed)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to create expense split", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to create expense split", err.Error())
 	}
 
 	split.ID = id
@@ -356,9 +356,9 @@ func (db *Database) GetExpenseSplits(expenseID string) ([]*ExpenseSplit, error) 
 		WHERE expense_id = ?
 	`
 
-	rows, err := db.queryRows(query, expenseID)
+	rows, err := db.conn.Query(query, expenseID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get expense splits", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get expense splits", err.Error())
 	}
 	defer rows.Close()
 
@@ -367,7 +367,7 @@ func (db *Database) GetExpenseSplits(expenseID string) ([]*ExpenseSplit, error) 
 		split := &ExpenseSplit{}
 		err := rows.Scan(&split.ID, &split.ExpenseID, &split.UserID, &split.AmountOwed)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan expense split", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan expense split", err.Error())
 		}
 		splits = append(splits, split)
 	}
@@ -384,10 +384,10 @@ func (db *Database) GetUserExpensesByTrip(groupTripID string, userID string) (pa
 		WHERE group_trip_id = ? AND paid_by = ?
 	`
 
-	row := db.query(paidQuery, groupTripID, userID)
+	row := db.conn.QueryRow(paidQuery, groupTripID, userID)
 	err = row.Scan(&paidAmount)
 	if err != nil {
-		return 0, 0, NewAPIError(ErrDatabaseError, "failed to get paid amount", map[string]string{"error": err.Error()})
+		return 0, 0, NewAPIError(ErrDatabaseError, "failed to get paid amount", err.Error())
 	}
 
 	// Get amount owed by user
@@ -398,10 +398,10 @@ func (db *Database) GetUserExpensesByTrip(groupTripID string, userID string) (pa
 		WHERE e.group_trip_id = ? AND es.user_id = ?
 	`
 
-	row = db.query(owedQuery, groupTripID, userID)
+	row = db.conn.QueryRow(owedQuery, groupTripID, userID)
 	err = row.Scan(&owedAmount)
 	if err != nil {
-		return 0, 0, NewAPIError(ErrDatabaseError, "failed to get owed amount", map[string]string{"error": err.Error()})
+		return 0, 0, NewAPIError(ErrDatabaseError, "failed to get owed amount", err.Error())
 	}
 
 	return paidAmount, owedAmount, nil
@@ -421,9 +421,9 @@ func (db *Database) CreatePoll(poll *Poll) error {
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, poll.GroupTripID, poll.CreatedBy, poll.Question, poll.PollType, PollStatusActive, poll.ExpiresAt, now)
+	_, err := db.conn.Exec(query, id, poll.GroupTripID, poll.CreatedBy, poll.Question, poll.PollType, PollStatusActive, poll.ExpiresAt, now)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to create poll", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to create poll", err.Error())
 	}
 
 	poll.ID = id
@@ -441,15 +441,15 @@ func (db *Database) GetPoll(id string) (*Poll, error) {
 		WHERE id = ?
 	`
 
-	row := db.query(query, id)
+	row := db.conn.QueryRow(query, id)
 	poll := &Poll{}
 
 	err := row.Scan(&poll.ID, &poll.GroupTripID, &poll.CreatedBy, &poll.Question, &poll.PollType, &poll.Status, &poll.ExpiresAt, &poll.CreatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, NewAPIError(ErrNotFound, "poll not found", nil)
+			return nil, NewAPIError(ErrNotFound, "poll not found", "")
 		}
-		return nil, NewAPIError(ErrDatabaseError, "failed to get poll", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get poll", err.Error())
 	}
 
 	return poll, nil
@@ -464,9 +464,9 @@ func (db *Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
 		ORDER BY created_at DESC
 	`
 
-	rows, err := db.queryRows(query, groupTripID)
+	rows, err := db.conn.Query(query, groupTripID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get group polls", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get group polls", err.Error())
 	}
 	defer rows.Close()
 
@@ -475,7 +475,7 @@ func (db *Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
 		poll := &Poll{}
 		err := rows.Scan(&poll.ID, &poll.GroupTripID, &poll.CreatedBy, &poll.Question, &poll.PollType, &poll.Status, &poll.ExpiresAt, &poll.CreatedAt)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan poll", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan poll", err.Error())
 		}
 		polls = append(polls, poll)
 	}
@@ -487,9 +487,9 @@ func (db *Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
 func (db *Database) UpdatePollStatus(id string, status string) error {
 	query := `UPDATE polls SET status = ? WHERE id = ?`
 
-	_, err := db.exec(query, status, id)
+	_, err := db.conn.Exec(query, status, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to update poll status", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to update poll status", err.Error())
 	}
 
 	return nil
@@ -508,17 +508,17 @@ func (db *Database) CreatePollOption(pollID string, optionText string, sequence 
 		VALUES (?, ?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, pollID, optionText, 0, sequence)
+	_, err := db.conn.Exec(query, id, pollID, optionText, 0, sequence)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to create poll option", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to create poll option", err.Error())
 	}
 
 	return &PollOption{
-		ID:        id,
-		PollID:    pollID,
+		ID:         id,
+		PollID:     pollID,
 		OptionText: optionText,
-		VoteCount: 0,
-		Sequence: sequence,
+		VoteCount:  0,
+		Sequence:   sequence,
 	}, nil
 }
 
@@ -531,9 +531,9 @@ func (db *Database) GetPollOptions(pollID string) ([]*PollOption, error) {
 		ORDER BY sequence ASC
 	`
 
-	rows, err := db.queryRows(query, pollID)
+	rows, err := db.conn.Query(query, pollID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get poll options", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get poll options", err.Error())
 	}
 	defer rows.Close()
 
@@ -542,7 +542,7 @@ func (db *Database) GetPollOptions(pollID string) ([]*PollOption, error) {
 		option := &PollOption{}
 		err := rows.Scan(&option.ID, &option.PollID, &option.OptionText, &option.VoteCount, &option.Sequence)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan poll option", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan poll option", err.Error())
 		}
 		options = append(options, option)
 	}
@@ -564,16 +564,16 @@ func (db *Database) CreatePollVote(optionID string, userID string) error {
 		VALUES (?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, optionID, userID, now)
+	_, err := db.conn.Exec(query, id, optionID, userID, now)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to create poll vote", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to create poll vote", err.Error())
 	}
 
 	// Increment vote count
 	updateQuery := `UPDATE poll_options SET vote_count = vote_count + 1 WHERE id = ?`
-	_, err = db.exec(updateQuery, optionID)
+	_, err = db.conn.Exec(updateQuery, optionID)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to increment vote count", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to increment vote count", err.Error())
 	}
 
 	return nil
@@ -589,7 +589,7 @@ func (db *Database) GetUserPollVote(pollID string, userID string) (*PollVote, er
 		LIMIT 1
 	`
 
-	row := db.query(query, pollID, userID)
+	row := db.conn.QueryRow(query, pollID, userID)
 	vote := &PollVote{}
 
 	err := row.Scan(&vote.ID, &vote.PollOptionID, &vote.UserID, &vote.VotedAt)
@@ -597,7 +597,7 @@ func (db *Database) GetUserPollVote(pollID string, userID string) (*PollVote, er
 		if err == sql.ErrNoRows {
 			return nil, nil // User hasn't voted yet
 		}
-		return nil, NewAPIError(ErrDatabaseError, "failed to get poll vote", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get poll vote", err.Error())
 	}
 
 	return vote, nil
@@ -617,9 +617,9 @@ func (db *Database) CreateSettlement(groupTripID string, debtorID string, credit
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
-	_, err := db.exec(query, id, groupTripID, debtorID, creditorID, amount, SettlementStatusPending, now)
+	_, err := db.conn.Exec(query, id, groupTripID, debtorID, creditorID, amount, SettlementStatusPending, now)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to create settlement", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to create settlement", err.Error())
 	}
 
 	return &Settlement{
@@ -642,9 +642,9 @@ func (db *Database) GetSettlements(groupTripID string) ([]*Settlement, error) {
 		ORDER BY created_at DESC
 	`
 
-	rows, err := db.queryRows(query, groupTripID)
+	rows, err := db.conn.Query(query, groupTripID)
 	if err != nil {
-		return nil, NewAPIError(ErrDatabaseError, "failed to get settlements", map[string]string{"error": err.Error()})
+		return nil, NewAPIError(ErrDatabaseError, "failed to get settlements", err.Error())
 	}
 	defer rows.Close()
 
@@ -653,7 +653,7 @@ func (db *Database) GetSettlements(groupTripID string) ([]*Settlement, error) {
 		settlement := &Settlement{}
 		err := rows.Scan(&settlement.ID, &settlement.GroupTripID, &settlement.DebtorID, &settlement.CreditorID, &settlement.Amount, &settlement.Status, &settlement.SettledAt, &settlement.CreatedAt)
 		if err != nil {
-			return nil, NewAPIError(ErrDatabaseError, "failed to scan settlement", map[string]string{"error": err.Error()})
+			return nil, NewAPIError(ErrDatabaseError, "failed to scan settlement", err.Error())
 		}
 		settlements = append(settlements, settlement)
 	}
@@ -666,10 +666,12 @@ func (db *Database) MarkSettlementSettled(id string) error {
 	now := time.Now()
 	query := `UPDATE settlements SET status = ?, settled_at = ? WHERE id = ?`
 
-	_, err := db.exec(query, SettlementStatusSettled, now, id)
+	_, err := db.conn.Exec(query, SettlementStatusSettled, now, id)
 	if err != nil {
-		return NewAPIError(ErrDatabaseError, "failed to mark settlement settled", map[string]string{"error": err.Error()})
+		return NewAPIError(ErrDatabaseError, "failed to mark settlement settled", err.Error())
 	}
 
 	return nil
 }
+
+

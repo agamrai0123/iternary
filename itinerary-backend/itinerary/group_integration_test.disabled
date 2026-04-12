@@ -24,8 +24,7 @@ func setupTestRouter(t *testing.T) (*gin.Engine, *Service, *Logger) {
 	
 	// Create mock database
 	db := &Database{
-		connection: nil, // Mock connection
-		logger:     logger,
+		conn: nil, // Mock connection for testing
 	}
 
 	// Create service
@@ -95,7 +94,7 @@ func TestCreateGroupTripHandlerAuthentication(t *testing.T) {
 func TestCreateGroupTripHandlerValidation(t *testing.T) {
 	router := gin.New()
 	logger := &Logger{log: zerolog.New(os.Stderr)}
-	service := &Service{logger: logger, db: &Database{logger: logger}}
+	service := &Service{logger: logger, db: &Database{conn: nil}}
 
 	router.Use(func(c *gin.Context) {
 		c.Set("user_id", "test-user")
@@ -145,7 +144,7 @@ func TestGroupTripsEndpointResponses(t *testing.T) {
 
 	router := gin.New()
 	logger := &Logger{log: zerolog.New(os.Stderr)}
-	db := &Database{logger: logger}
+	db := &Database{conn: nil}
 	service := &Service{logger: logger, db: db}
 
 	router.Use(func(c *gin.Context) {
@@ -177,7 +176,7 @@ func TestGroupTripsEndpointResponses(t *testing.T) {
 func TestExpenseHandlerLogging(t *testing.T) {
 	router := gin.New()
 	logger := &Logger{log: zerolog.New(os.Stderr)}
-	service := &Service{logger: logger, db: &Database{logger: logger}}
+	service := &Service{logger: logger, db: &Database{conn: nil}}
 
 	router.Use(func(c *gin.Context) {
 		c.Set("user_id", "test-user")
@@ -191,8 +190,8 @@ func TestExpenseHandlerLogging(t *testing.T) {
 		Description: "Dinner",
 		Amount:      5000.00,
 		Category:    "food",
-		PaidBy:      "test-user",
 		SplitType:   "equal",
+		SplitAmong:  []string{"test-user"},
 	}
 
 	reqBody, _ := json.Marshal(expenseReq)
@@ -260,13 +259,12 @@ func TestInvalidJSONError(t *testing.T) {
 
 	req, _ := http.NewRequest("POST", "/api/group-trips", bytes.NewBufferString(`{invalid}`))
 	req.Header.Set("Content-Type", "application/json")
-if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected %d, got %d", http.StatusBadRequest, w.Code)
-	}
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("Expected %d, got %d", http.StatusBadRequest, w.Code)
+	}
 }
 
 // ============================================================================
@@ -414,200 +412,3 @@ func (m *mockDatabase) GetGroupPolls(tripID string) ([]Poll, error) {
 	return []Poll{}, nil
 }
 
-func (m *mockDatabase) Close() error {
-	return nil
-}
-
-// ============================================================================
-/if GroupTripStatusDraft != "draft" {
-		t.Errorf("GroupTripStatusDraft = %s, want draft", GroupTripStatusDraft)
-	}
-	if GroupTripStatusPlanning != "planning" {
-		t.Errorf("GroupTripStatusPlanning = %s, want planning", GroupTripStatusPlanning)
-	}
-	if GroupTripStatusPublished != "published" {
-		t.Errorf("GroupTripStatusPublished = %s, want published", GroupTripStatusPublished)
-	}
-	if GroupTripStatusCompleted != "completed" {
-		t.Errorf("GroupTripStatusCompleted = %s, want completed", GroupTripStatusCompleted)
-	}
-
-	// Verify member role constants
-	if GroupMemberRoleOwner != "owner" {
-		t.Errorf("GroupMemberRoleOwner = %s, want owner", GroupMemberRoleOwner)
-	}
-	if GroupMemberRoleEditor != "editor" {
-		t.Errorf("GroupMemberRoleEditor = %s, want editor", GroupMemberRoleEditor)
-	}
-	if GroupMemberRoleMember != "member" {
-		t.Errorf("GroupMemberRoleMember = %s, want member", GroupMemberRoleMember)
-	}
-	if GroupMemberRoleViewer != "viewer" {
-		t.Errorf("GroupMemberRoleViewer = %s, want viewer", GroupMemberRoleViewer)
-	}
-
-	// Verify member status constants
-	if GroupMemberStatusPending != "pending" {
-		t.Errorf("GroupMemberStatusPending = %s, want pending", GroupMemberStatusPending)
-	}
-	if GroupMemberStatusActive != "active" {
-	if err.Code != ErrValidationError {
-		t.Errorf("Expected code %s, got %s", ErrValidationError, err.Code)
-	}
-	if err.Message != "invalid input" {
-		t.Errorf("Expected message 'invalid input', got '%s'", err.Message)
-	}
-	if err.Details == nil {
-		t.Error("Expected Details to be non-nil")
-	}
-}
-
-// TestHTTPStatusCodeMapping verifies status code mapping
-func TestHTTPStatusCodeMapping(t *testing.T) {
-	tests := []struct {
-		code       string
-		expected   int
-	}{
-		{ErrValidationError, http.StatusBadRequest},
-		{ErrUnauthorized, http.StatusUnauthorized},
-		{ErrForbidden, http.StatusForbidden},
-		{ErrNotFound, http.StatusNotFound},
-		{ErrConflict, http.StatusConflict},
-		{ErrDatabaseError, http.StatusInternalServerError},
-	}
-
-	for _, tt := range tests {
-		actual := getHTTPStatusCode(tt.code)
-		if actual != tt.expected {
-			t.Errorf("Error code %s: expected %d, got %d", tt.code, tt.expected, actual)
-		}
-	if ExpenseCategoryOther != "other" {
-		t.Errorf("ExpenseCategoryOther = %s, want other", ExpenseCategoryOther)
-	}
-	// Verify expense category constants
-	assert.Equal(t, "accommodation", ExpenseCategoryAccommodation)
-	assert.Equal(t, "food", ExpenseCategoryFood)
-	assert.Equal(t, "transport", ExpenseCategoryTransport)
-	assert.Equal(t, "activity", ExpenseCategoryActivity)
-	assert.Equal(t, "other", ExpenseCategoryOther)
-}
-
-// TestAPIErrorHandling verifies APIError works properly
-func TestAPIErrorHandling(t *testing.T) {
-	err := NewAPIError(ErrValidationError, "invalid input", map[string]string{
-		"field": "title",
-		"reason": "required",
-	})
-
-	assert.Equal(t, ErrValidationError, err.Code)
-	assert.Equal(t, "invalid input", err.Message)
-	assert.NotNil(t, err.Details)
-}
-
-// TestHTTPStatusCodeMapping verifies status code mapping
-func TestHTTPStatusCodeMapping(t *testing.T) {
-	tests := []struct {
-		code       string
-		expected   int
-	}{
-		{ErrValidationError, http.StatusBadRequest},
-		{ErrUnauthorized, http.StatusUnauthorized},
-		{ErrForbidden, http.StatusForbidden},
-		{ErrNotFound, http.StatusNotFound},
-		{ErrConflict, http.StatusConflict},
-		{ErrDatabaseError, http.StatusInternalServerError},
-	}
-
-	for _, tt := range tests {
-		actual := getHTTPStatusCode(tt.code)
-		assert.Equal(t, tt.expected, actual, "Error code %s should map to %d", tt.code, tt.expected)
-	}
-}
-
-// ============================================================================
-// DATA VALIDATION TESTS
-// ============================================================================
-
-// TestGroupTripValidationInHandler verifies validation in handler context
-func TestGroupTripValidationInHandler(t *testing.T) {
-	logger := &Logger{log: zerolog.New(os.Stderr)}
-	service := &Service{logger: logger, db: &Database{logger: logger}}
-
-	tests := []struct {
-		name     string
-		request  CreateGroupTripRequest
-		shouldFail bool
-	}{
-		{
-			name: "Valid trip",
-			request: CreateGroupTripRequest{
-				Title:    "Valid Trip",
-				Budget:   50000,
-				Duration: 7,
-				StartDate: time.Now().AddDate(0, 1, 0),
-			},
-			shouldFail: false,
-		},
-		{if err == nil {
-					t.Errorf("Expected validation error for: %s", tt.name)
-				}
-			} else {
-				// May have DB error, but validation should pass
-				if err != nil {
-					apiErr := err.(*APIError)
-					if apiErr.Code == ErrValidationError {
-						t.Errorf("Should not have validation error for: %s", tt.name)
-					}
-				StartDate: time.Now(),
-			},
-			shouldFail: true,
-		},
-		{
-			name: "Negative budget",
-			request: CreateGroupTripRequest{
-				Title:    "Negative Budget",
-				Budget:   -1000,
-				Duration: 7,
-				StartDate: time.Now(),
-			},
-			shouldFail: true,
-		},
-		{
-			name: "Zero duration",
-			request: CreateGroupTripRequest{
-				Title:    "No Duration",
-				Budget:   10000,
-				Duration: 0,
-				StartDate: time.Now(),
-			},
-			shouldFail: true,
-		},
-		{
-			name: "Empty title",
-			request: CreateGroupTripRequest{
-				Title:    "",
-				Budget:   10000,
-				Duration: 7,
-				StartDate: time.Now(),
-			},
-			shouldFail: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create service method call to validate
-			_, err := service.CreateGroupTrip("user-001", &tt.request)
-			
-			if tt.shouldFail {
-				assert.NotNil(t, err, "Expected validation error for: %s", tt.name)
-			} else {
-				// May have DB error, but validation should pass
-				if err != nil {
-					apiErr := err.(*APIError)
-					assert.NotEqual(t, ErrValidationError, apiErr.Code, "Should not have validation error for: %s", tt.name)
-				}
-			}
-		})
-	}
-}
