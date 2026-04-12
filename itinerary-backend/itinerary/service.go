@@ -1,21 +1,18 @@
-package service
+package itinerary
 
 import (
 	"fmt"
 	"time"
-
-	"github.com/yourusername/itinerary-backend/itinerary/models"
-	"github.com/yourusername/itinerary-backend/itinerary/utils"
 )
 
 // Service represents the business logic layer
 type Service struct {
 	db     *Database
-	logger *utils.Logger
+	logger *Logger
 }
 
 // NewService creates a new service instance
-func NewService(db *Database, logger *utils.Logger) *Service {
+func NewService(db *Database, logger *Logger) *Service {
 	return &Service{
 		db:     db,
 		logger: logger,
@@ -23,7 +20,7 @@ func NewService(db *Database, logger *utils.Logger) *Service {
 }
 
 // GetDestinations retrieves destinations with pagination
-func (s *Service) GetDestinations(page, pageSize int) ([]models.Destination, int, error) {
+func (s *Service) GetDestinations(page, pageSize int) ([]Destination, int, error) {
 	if page < 1 {
 		page = 1
 	}

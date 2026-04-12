@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -10,6 +11,8 @@ import (
 func ExampleMemoryCacheUsage() {
 	cache := NewMemoryCache()
 	defer cache.Close()
+
+	ctx := context.Background()
 
 	// Set values
 	cache.Set("user:1", map[string]string{"name": "Alice", "email": "alice@example.com"}, 5*time.Minute)
