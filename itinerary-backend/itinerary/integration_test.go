@@ -8,10 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/agamrai0123/iternary/itinerary/cache"
-	"github.com/agamrai0123/iternary/itinerary/database"
+	"github.com/yourusername/itinerary-backend/itinerary/cache"
+	"github.com/yourusername/itinerary-backend/itinerary/database"
 )
-
 // ============================================================================
 // TEST 1: Cache + Database Integration
 // ============================================================================

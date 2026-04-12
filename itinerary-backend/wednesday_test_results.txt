@@ -1,2 +1,0 @@
-FAIL	github.com/yourusername/itinerary-backend/itinerary [build failed]
-FAIL

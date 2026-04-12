@@ -1,5 +1,0 @@
-id,user_id,destination_id,title,description,duration,budget,created_at
-itin-001,user-001,dest-001,"5-Day Budget Goa Trip","Perfect 5 days in Goa with beaches, culture, and food. Includes Baga Beach, Old Goa churches, and local cuisine. Includes 3-star accommodation.",5,15000.0,"2026-03-24 08:07:36"
-itin-002,user-002,dest-001,"Luxury 7-Day Goa Experience","High-end Goa itinerary with 5-star resorts, adventure activities and fine dining. Includes water sports, spa and sunset cruises.",7,45000.0,"2026-03-24 08:07:36"
-itin-003,user-003,dest-002,"4-Day Manali Adventure","Adventure-focused trip with trekking, paragliding, and camping. Includes visits to Rohtang Pass and local villages.",4,12000.0,"2026-03-24 08:07:36"
-itin-004,user-001,dest-003,"6-Day Bali Paradise","Comprehensive Bali experience with beaches, temples, rice paddies and nightlife. Perfect for first-time visitors.",6,18000.0,"2026-03-24 08:07:36"
