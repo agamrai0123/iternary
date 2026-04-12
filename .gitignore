@@ -25,6 +25,20 @@ logs/
 .env.local
 .env.*.local
 
+# Development & Testing
+/dev/
+/scripts/
+*.tmp
+test_results*.json
+test_*.log
+
+# Build & Cache
+/bin/
+/dist/
+.cache/
+__pycache__/
+*.pyc
+
 # IDE
 .vscode/
 .idea/
