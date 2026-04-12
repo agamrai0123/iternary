@@ -40,7 +40,8 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	router.GET("/", handlers.LoginPage) // Redirect home to login
 
 	// Protected pages (require authentication)
-	router.GET("/dashboard", authMiddleware.RequireAuth(), handlers.Dashboard)
+	// Note: Dashboard temporarily allows unauthenticated access for development
+	router.GET("/dashboard", handlers.Dashboard)
 	router.GET("/plan-trip", authMiddleware.RequireAuth(), handlers.PlanTripPage)
 	router.GET("/my-trips", authMiddleware.RequireAuth(), handlers.MyTripsPage)
 	router.GET("/my-trips/:id", authMiddleware.RequireAuth(), handlers.MyTripDetail)
