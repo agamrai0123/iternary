@@ -6,8 +6,6 @@ import (
 	"time"
 
 	_ "modernc.org/sqlite"
-	"github.com/yourusername/itinerary-backend/itinerary/config"
-	"github.com/yourusername/itinerary-backend/itinerary/utils"
 )
 
 // Database represents the database connection
@@ -16,7 +14,7 @@ type Database struct {
 }
 
 // NewDatabase creates a new SQLite database connection
-func NewDatabase(cfg *config.Config, logger *utils.Logger) (*Database, error) {
+func NewDatabase(cfg *Config, logger *Logger) (*Database, error) {
 	// SQLite connection - uses file-based database
 	dbPath := "itinerary.db"
 
