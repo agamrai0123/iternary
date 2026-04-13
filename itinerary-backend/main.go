@@ -32,7 +32,6 @@ func main() {
 	logger := utils.NewLogger(cfg)
 	logger.Info("Starting Itinerary Service")
 
-
 	// Initialize metrics
 	metrics := middleware.NewMetrics()
 

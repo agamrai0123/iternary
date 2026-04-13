@@ -1,4 +1,4 @@
-package itinerary
+package handlers
 
 import (
 	"context"
@@ -50,7 +50,7 @@ func (h *Handlers) HealthCheckHandler(c *gin.Context) {
 				"latency": dbLatency.String(),
 			},
 			"cache": map[string]interface{}{
-				"status":  "operational",
+				"status": "operational",
 			},
 		},
 	}
@@ -73,7 +73,7 @@ func (h *Handlers) ReadinessHandler(c *gin.Context) {
 	// Check if database is ready
 	if h.service.db == nil || h.service.db.conn == nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
-			"ready": false,
+			"ready":  false,
 			"reason": "database not initialized",
 		})
 		return
@@ -81,15 +81,15 @@ func (h *Handlers) ReadinessHandler(c *gin.Context) {
 
 	if err := h.service.db.conn.PingContext(ctx); err != nil {
 		c.JSON(http.StatusServiceUnavailable, gin.H{
-			"ready": false,
+			"ready":  false,
 			"reason": "database not responding",
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"ready": true,
+		"ready":     true,
 		"timestamp": time.Now(),
 	})
 }
@@ -99,7 +99,7 @@ func (h *Handlers) LivenessHandler(c *gin.Context) {
 	// Liveness probe just checks if the application is running
 	// It should be simple and not make external calls
 	c.JSON(http.StatusOK, gin.H{
-		"alive": true,
+		"alive":     true,
 		"timestamp": time.Now(),
 	})
 }
@@ -126,13 +126,13 @@ func (h *Handlers) MetricsHandler(c *gin.Context) {
 	h.metrics.mu.RUnlock()
 
 	metrics := map[string]interface{}{
-		"http_requests_total": totalRequests,
-		"http_errors_total": totalErrors,
+		"http_requests_total":    totalRequests,
+		"http_errors_total":      totalErrors,
 		"database_queries_total": h.metrics.DatabaseQueriesTotal,
-		"destinations_created": atomic.LoadInt64(&h.metrics.DestinationsCreated),
-		"itineraries_created": atomic.LoadInt64(&h.metrics.ItinerariesCreated),
-		"comments_created": atomic.LoadInt64(&h.metrics.CommentsCreated),
-		"likes_total": atomic.LoadInt64(&h.metrics.LikesTotal),
+		"destinations_created":   atomic.LoadInt64(&h.metrics.DestinationsCreated),
+		"itineraries_created":    atomic.LoadInt64(&h.metrics.ItinerariesCreated),
+		"comments_created":       atomic.LoadInt64(&h.metrics.CommentsCreated),
+		"likes_total":            atomic.LoadInt64(&h.metrics.LikesTotal),
 	}
 
 	c.JSON(http.StatusOK, metrics)
@@ -144,14 +144,14 @@ func (h *Handlers) StatusHandler(c *gin.Context) {
 	defer cancel()
 
 	status := map[string]interface{}{
-		"service": "itinerary-backend",
-		"version": "1.0.0",
-		"status": "running",
-		"timestamp": time.Now().UTC(),
+		"service":     "itinerary-backend",
+		"version":     "1.0.0",
+		"status":      "running",
+		"timestamp":   time.Now().UTC(),
 		"environment": gin.Mode(),
 		"diagnostics": map[string]interface{}{
 			"database": h.checkDatabaseStatus(ctx),
-			"cache": h.checkCacheStatus(ctx),
+			"cache":    h.checkCacheStatus(ctx),
 		},
 	}
 
@@ -161,7 +161,7 @@ func (h *Handlers) StatusHandler(c *gin.Context) {
 // checkDatabaseStatus checks database health
 func (h *Handlers) checkDatabaseStatus(ctx context.Context) map[string]interface{} {
 	result := map[string]interface{}{
-		"status": "unknown",
+		"status":  "unknown",
 		"details": map[string]interface{}{},
 	}
 
@@ -182,13 +182,13 @@ func (h *Handlers) checkDatabaseStatus(ctx context.Context) map[string]interface
 	// Get connection pool stats
 	stats := h.service.db.conn.Stats()
 	result["details"] = map[string]interface{}{
-		"open_connections": stats.OpenConnections,
-		"in_use": stats.InUse,
-		"idle": stats.Idle,
-		"wait_count": stats.WaitCount,
-		"wait_duration": stats.WaitDuration.String(),
-		"max_idle_closed": stats.MaxIdleClosed,
-		"max_lifetime_closed": stats.MaxLifetimeClosed,
+		"open_connections":     stats.OpenConnections,
+		"in_use":               stats.InUse,
+		"idle":                 stats.Idle,
+		"wait_count":           stats.WaitCount,
+		"wait_duration":        stats.WaitDuration.String(),
+		"max_idle_closed":      stats.MaxIdleClosed,
+		"max_lifetime_closed":  stats.MaxLifetimeClosed,
 		"max_open_connections": stats.MaxOpenConnections,
 	}
 
@@ -211,11 +211,11 @@ func (h *Handlers) checkCacheStatus(ctx context.Context) map[string]interface{} 
 // RegisterHealthRoutes registers all health check routes
 func RegisterHealthRoutes(router *gin.Engine, handlers *Handlers) {
 	// Health checks (no auth required)
-	router.GET("/health", handlers.HealthCheckHandler)      // Kubernetes liveness probe
-	router.GET("/ready", handlers.ReadinessHandler)        // Kubernetes readiness probe
-	router.GET("/live", handlers.LivenessHandler)         // Kubernetes startup probe
-	router.GET("/status", handlers.StatusHandler)         // Detailed status
-	router.GET("/metrics", handlers.MetricsHandler)       // Prometheus metrics
+	router.GET("/health", handlers.HealthCheckHandler) // Kubernetes liveness probe
+	router.GET("/ready", handlers.ReadinessHandler)    // Kubernetes readiness probe
+	router.GET("/live", handlers.LivenessHandler)      // Kubernetes startup probe
+	router.GET("/status", handlers.StatusHandler)      // Detailed status
+	router.GET("/metrics", handlers.MetricsHandler)    // Prometheus metrics
 
 	// Health check aliases for compatibility
 	router.GET("/healthz", handlers.HealthCheckHandler)

@@ -1,4 +1,4 @@
-package itinerary
+package auth
 
 import (
 	"strings"
@@ -23,10 +23,14 @@ func NewAuthMiddleware(authService *AuthService, logger *Logger) *AuthMiddleware
 // RequireAuth is middleware that requires a valid authentication token
 func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get token from Authorization header or from query parameter
+		// Get token from Authorization header, query parameter, or cookie
 		token := c.GetHeader("Authorization")
 		if token == "" {
 			token = c.Query("token")
+		}
+		if token == "" {
+			// Check for cookie
+			token, _ = c.Cookie("token")
 		}
 
 		// Remove "Bearer " prefix if present
@@ -70,10 +74,14 @@ func (am *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 // If token is present, it sets user_id in context. If not, continues without auth.
 func (am *AuthMiddleware) OptionalAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get token from Authorization header or from query parameter
+		// Get token from Authorization header, query parameter, or cookie
 		token := c.GetHeader("Authorization")
 		if token == "" {
 			token = c.Query("token")
+		}
+		if token == "" {
+			// Check for cookie
+			token, _ = c.Cookie("token")
 		}
 
 		// Remove "Bearer " prefix if present

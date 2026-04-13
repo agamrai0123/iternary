@@ -14,11 +14,11 @@ type Database struct {
 }
 
 // NewDatabase creates a new SQLite database connection
-func NewDatabase(cfg *Config, logger *Logger) (*Database, error) {
+func NewDatabase(config *Config, logger *Logger) (*Database, error) {
 	// SQLite connection - uses file-based database
 	dbPath := "itinerary.db"
 
-	logger.Debug("connecting to database   ", "path", dbPath)
+	logger.Debug("connecting to database", "path", dbPath)
 
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {

@@ -1,4 +1,4 @@
-package itinerary
+package auth
 
 import (
 	"net/http"
@@ -67,6 +67,17 @@ func (ah *AuthHandlers) Login(c *gin.Context) {
 	}
 
 	ah.logger.Info("login_successful", "user_id", user.ID, "email", req.Email)
+
+	// Set secure cookie for browser-based requests
+	c.SetCookie(
+		"token",
+		session.Token,
+		int(session.ExpiresAt.Sub(time.Now()).Seconds()),
+		"/",
+		"",
+		c.Request.Header.Get("X-Forwarded-Proto") == "https" || c.Request.TLS != nil,
+		true,
+	)
 
 	c.JSON(http.StatusOK, LoginResponse{
 		Token:     session.Token,

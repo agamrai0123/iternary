@@ -1,4 +1,4 @@
-package itinerary
+package auth
 
 import (
 	"net/http"
