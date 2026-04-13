@@ -1,0 +1,118 @@
+# Staging Environment Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itinerary-config-staging
+  namespace: staging
+  labels:
+    app: itinerary-backend
+    environment: staging
+
+data:
+  # Database Configuration
+  database.host: "postgres-staging.database.svc.cluster.local"
+  database.port: "5432"
+  database.name: "itinerary_staging"
+  database.max_connections: "10"
+  database.ssl_mode: "prefer"
+  
+  # Cache Configuration
+  cache.host: "redis-staging.cache.svc.cluster.local"
+  cache.port: "6379"
+  cache.ttl: "1800"  # 30 minutes for staging
+  
+  # Application Configuration
+  app.mode: "release"
+  app.log_level: "debug"  # More verbose in staging
+  app.environment: "staging"
+  
+  # Security Configuration
+  security.rate_limit_requests: "500"
+  security.rate_limit_window: "60"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials-staging
+  namespace: staging
+  labels:
+    app: itinerary-backend
+    environment: staging
+
+type: Opaque
+stringData:
+  username: "staging_user"
+  password: "staging_password_2026"
+  url: "postgresql://staging_user:staging_password_2026@postgres-staging.database.svc.cluster.local:5432/itinerary_staging"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets-staging
+  namespace: staging
+
+type: Opaque
+stringData:
+  jwt_secret: "staging-jwt-secret-key-min-32-chars-for-staging"
+
+---
+# Production Environment Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: itinerary-config-prod
+  namespace: production
+  labels:
+    app: itinerary-backend
+    environment: production
+
+data:
+  # Database Configuration
+  database.host: "postgres-prod.database.svc.cluster.local"
+  database.port: "5432"
+  database.name: "itinerary_production"
+  database.max_connections: "25"
+  database.ssl_mode: "require"
+  
+  # Cache Configuration
+  cache.host: "redis-prod.cache.svc.cluster.local"
+  cache.port: "6379"
+  cache.ttl: "3600"  # 1 hour for production
+  
+  # Application Configuration
+  app.mode: "release"
+  app.log_level: "info"  # Production only logs errors
+  app.environment: "production"
+  
+  # Security Configuration
+  security.rate_limit_requests: "1000"
+  security.rate_limit_window: "60"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials-prod
+  namespace: production
+  labels:
+    app: itinerary-backend
+    environment: production
+
+type: Opaque
+stringData:
+  username: "itinerary_prod_user"
+  password: "$(PROD_DB_PASSWORD)"  # Set via secrets manager
+  url: "postgresql://itinerary_prod_user:$(PROD_DB_PASSWORD)@postgres-prod.database.svc.cluster.local:5432/itinerary_production"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets-prod
+  namespace: production
+
+type: Opaque
+stringData:
+  jwt_secret: "$(PROD_JWT_SECRET)"  # Set via secrets manager
