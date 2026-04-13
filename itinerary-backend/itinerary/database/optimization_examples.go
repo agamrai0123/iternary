@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
-
-	"yourapp/database/query"
 )
 
 // ExampleInitializeOptimization demonstrates initialization

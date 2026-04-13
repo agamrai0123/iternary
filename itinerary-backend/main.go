@@ -5,12 +5,7 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/itinerary-backend/itinerary/auth"
-	"github.com/yourusername/itinerary-backend/itinerary/config"
-	"github.com/yourusername/itinerary-backend/itinerary/middleware"
-	"github.com/yourusername/itinerary-backend/itinerary/routes"
-	"github.com/yourusername/itinerary-backend/itinerary/service"
-	"github.com/yourusername/itinerary-backend/itinerary/utils"
+	"github.com/yourusername/itinerary-backend/itinerary"
 )
 
 func main() {
@@ -23,20 +18,20 @@ func main() {
 	log.Printf("Gin mode set to: %s", ginMode)
 
 	// Load configuration
-	cfg, err := config.LoadConfig("config/config.json")
+	config, err := itinerary.LoadConfig("config/config.json")
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
 	// Initialize logger
-	logger := utils.NewLogger(cfg)
+	logger := itinerary.NewLogger(config)
 	logger.Info("Starting Itinerary Service")
 
 	// Initialize metrics
-	metrics := middleware.NewMetrics()
+	metrics := itinerary.NewMetrics()
 
 	// Initialize database
-	db, err := service.NewDatabase(cfg, logger)
+	db, err := itinerary.NewDatabase(config, logger)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -44,13 +39,13 @@ func main() {
 	logger.Info("Database connection successful")
 
 	// Initialize service
-	svc := service.NewService(db, logger)
+	svc := itinerary.NewService(db, logger)
 
 	// Initialize auth service
-	authService := auth.NewAuthService(db, logger)
+	authService := itinerary.NewAuthService(db, logger)
 
 	// Initialize router
-	router := routes.SetupRoutes(svc, logger, metrics, authService)
+	router := itinerary.SetupRoutes(svc, logger, metrics, authService)
 
 	// Run server
 	port := config.Server.Port
