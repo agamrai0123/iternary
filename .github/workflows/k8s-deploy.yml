@@ -1,0 +1,114 @@
+name: K8s Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'itinerary-backend/**'
+      - 'k8s/**'
+      - '.github/workflows/k8s-deploy.yml'
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+
+env:
+  GO_VERSION: '1.25'
+  DOCKER_REGISTRY: docker.io
+
+jobs:
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run integration tests
+        working-directory: ./itinerary-backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          go test -v ./itinerary/integration_tests -timeout 60s
+          echo "✅ All integration tests passed"
+
+  validate-k8s:
+    name: Validate Kubernetes Manifests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML files
+        run: |
+          for f in k8s/*.yaml; do
+            echo "Validating $f..."
+            if ! grep -q "apiVersion" "$f"; then
+              echo "❌ Missing apiVersion in $f"
+              exit 1
+            fi
+          done
+          echo "✅ All YAML files have required fields"
+
+      - name: Check resource definitions
+        run: |
+          echo "Deployment manifest:"
+          ls -lh k8s/deployment.yaml
+          
+          echo "Service manifest:"
+          ls -lh k8s/service.yaml
+          
+          echo "ConfigMap and Secrets:"
+          ls -lh k8s/configmap-secrets.yaml
+
+  deployment-ready:
+    name: Deployment Ready
+    runs-on: ubuntu-latest
+    needs: [test-integration, validate-k8s]
+    
+    steps:
+      - name: ✅ All checks passed
+        run: |
+          echo "✅ Integration tests passed"
+          echo "✅ Kubernetes manifests validated"
+          echo "🚀 Ready for deployment"

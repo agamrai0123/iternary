@@ -4,10 +4,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/yourusername/itinerary-backend/itinerary"
 )
 
 func main() {
+	// Set Gin mode from environment variable (required for production)
+	ginMode := os.Getenv("GIN_MODE")
+	if ginMode == "" {
+		ginMode = "debug" // Default to debug for development
+	}
+	gin.SetMode(ginMode)
+	log.Printf("Gin mode set to: %s", ginMode)
+
 	// Load configuration
 	config, err := itinerary.LoadConfig("config/config.json")
 	if err != nil {
@@ -17,6 +26,7 @@ func main() {
 	// Initialize logger
 	logger := itinerary.NewLogger(config)
 	logger.Info("Starting Itinerary Service")
+
 
 	// Initialize metrics
 	metrics := itinerary.NewMetrics()

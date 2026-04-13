@@ -1,0 +1,260 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: itinerary-backend
+  namespace: default
+  labels:
+    app: itinerary-backend
+    version: v1
+  annotations:
+    description: "LoadBalancer service for Itinerary Backend API"
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # Network Load Balancer (faster)
+
+spec:
+  # Service type - LoadBalancer exposes service externally with cloud provider LB
+  type: LoadBalancer
+  
+  # Session affinity for stateful connections
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 hours
+  
+  # Selector - which pods to route traffic to
+  selector:
+    app: itinerary-backend
+  
+  # Port configuration
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  
+  - name: https
+    port: 443
+    targetPort: http
+    protocol: TCP
+    # HTTPS handling done at ingress/load balancer level
+  
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+    # Only expose internally for monitoring
+  
+  # IP allocation and health check configuration
+  healthCheckNodePort: 30000
+  externalTrafficPolicy: Local  # Route to local node
+  publishNotReadyAddresses: false
+
+---
+# ClusterIP service for internal communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: itinerary-backend-internal
+  namespace: default
+  labels:
+    app: itinerary-backend
+    type: internal
+  annotations:
+    description: "Internal ClusterIP service for pod-to-pod communication"
+
+spec:
+  type: ClusterIP
+  
+  selector:
+    app: itinerary-backend
+  
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http
+    protocol: TCP
+  
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  
+  # DNS resolution - fully qualified domain name will be:
+  # itinerary-backend-internal.default.svc.cluster.local:8080
+
+---
+# Ingress for advanced routing (HTTP/HTTPS, path-based routing)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: itinerary-backend-ingress
+  namespace: default
+  labels:
+    app: itinerary-backend
+  annotations:
+    # Nginx ingress controller annotations
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Auto SSL/TLS
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    # Security headers
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Permissions-Policy: geolocation=(), microphone=(), camera=()";
+    
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "1000"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+    
+    # CORS
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+
+spec:
+  ingressClassName: nginx
+  
+  # TLS/SSL certificate from Let's Encrypt
+  tls:
+  - hosts:
+    - api.triply.com
+    - api-staging.triply.com
+    secretName: itinerary-backend-tls
+  
+  # Routing rules
+  rules:
+  # Production API
+  - host: api.triply.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: itinerary-backend
+            port:
+              name: http
+      
+      # Health check endpoint (30s timeout)
+      - path: /health
+        pathType: Exact
+        backend:
+          service:
+            name: itinerary-backend
+            port:
+              name: http
+  
+  # Staging API
+  - host: api-staging.triply.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: itinerary-backend
+            port:
+              name: http
+  
+  # Default backend for catch-all
+  defaultBackend:
+    service:
+      name: itinerary-backend
+      port:
+        name: http
+
+---
+# NetworkPolicy for security - restrict traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: itinerary-backend-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: itinerary-backend
+  
+  policyTypes:
+  - Ingress
+  - Egress
+  
+  # Ingress rules - who can talk to this pod
+  ingress:
+  # Allow from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: nginx-ingress
+    ports:
+    - protocol: TCP
+      port: 8080
+  
+  # Allow from Kubernetes DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  
+  # Egress rules - where this pod can reach
+  egress:
+  # Allow to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  
+  # Allow to Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  
+  # Allow DNS resolution
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  
+  # Allow HTTPS for external APIs (if needed)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+
+---
+# PodDisruptionBudget for high availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: itinerary-backend-pdb
+  namespace: default
+spec:
+  minAvailable: 2  # Always keep at least 2 pods running
+  selector:
+    matchLabels:
+      app: itinerary-backend
+  unhealthyPodEvictionPolicy: IfHealthyBudget

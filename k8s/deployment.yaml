@@ -1,0 +1,377 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: itinerary-backend
+  namespace: default
+  labels:
+    app: itinerary-backend
+    version: v1
+  annotations:
+    description: "Itinerary Backend Service - Multi-tier travel planning API"
+    deployment.date: "2026-04-13"
+
+spec:
+  replicas: 3  # High availability - auto-scaled based on metrics
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1       # One extra pod during updates
+      maxUnavailable: 0  # Zero downtime deployments
+  
+  selector:
+    matchLabels:
+      app: itinerary-backend
+  
+  template:
+    metadata:
+      labels:
+        app: itinerary-backend
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    
+    spec:
+      # Service account for RBAC
+      serviceAccountName: itinerary-backend
+      
+      # Pod security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      
+      # Init containers for pre-flight checks
+      initContainers:
+      - name: wait-for-postgres
+        image: postgres:18-alpine
+        command: 
+        - /bin/sh
+        - -c
+        - |
+          until pg_isready -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER}; do
+            echo 'Waiting for PostgreSQL...'
+            sleep 5
+          done
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.host
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.port
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: username
+      
+      - name: wait-for-redis
+        image: redis:7-alpine
+        command:
+        - /bin/sh
+        - -c
+        - |
+          until redis-cli -h ${REDIS_HOST} -p ${REDIS_PORT} PING; do
+            echo 'Waiting for Redis...'
+            sleep 5
+          done
+        env:
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: cache.host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: cache.port
+      
+      # Application containers
+      containers:
+      - name: itinerary-backend
+        image: itinerary-backend:latest
+        imagePullPolicy: IfNotPresent
+        
+        # Pod priority
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        # Port definitions
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        
+        # Environment variables from ConfigMaps and Secrets
+        env:
+        # Database Configuration
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: url
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.host
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.port
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: password
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.name
+        - name: DB_MAX_CONNECTIONS
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: database.max_connections
+        
+        # Redis/Cache Configuration
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: cache-credentials
+              key: url
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: cache.host
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: cache.port
+        - name: CACHE_TTL
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: cache.ttl
+        
+        # Application Configuration
+        - name: GIN_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: app.mode
+        - name: API_PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: app.log_level
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: app.environment
+        
+        # Security Configuration
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: jwt_secret
+        - name: RATE_LIMIT_REQUESTS
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: security.rate_limit_requests
+        - name: RATE_LIMIT_WINDOW
+          valueFrom:
+            configMapKeyRef:
+              name: itinerary-config
+              key: security.rate_limit_window
+        
+        # Resource Management
+        resources:
+          requests:
+            cpu: 250m          # 0.25 CPU cores
+            memory: 256Mi      # 256 MB
+            ephemeral-storage: 500Mi
+          limits:
+            cpu: 1000m         # 1 CPU core max
+            memory: 512Mi      # 512 MB max
+            ephemeral-storage: 1Gi
+        
+        # Volume Mounts
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /var/cache/app
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        
+        # Health Checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 3
+        
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 30  # 5 minutes max startup time
+        
+        # Lifecycle hooks
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 15"]  # Graceful shutdown delay
+        
+        # Logging configuration
+        stdin: false
+        tty: false
+      
+      # Pod-level volumes
+      volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: cache
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: config
+        configMap:
+          name: itinerary-config
+          defaultMode: 0644
+      
+      # Affinity rules for pod distribution
+      affinity:
+        # Spread pods across nodes for high availability
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - itinerary-backend
+              topologyKey: kubernetes.io/hostname
+        
+        # Prefer nodes with more resources
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: node-size
+                operator: In
+                values:
+                - standard
+                - large
+      
+      # Termination grace period for clean shutdown
+      terminationGracePeriodSeconds: 30
+      
+      # DNS policy for service discovery
+      dnsPolicy: ClusterFirst
+
+---
+# Horizontal Pod Autoscaler for automatic scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: itinerary-backend-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: itinerary-backend
+  
+  minReplicas: 3
+  maxReplicas: 10
+  
+  metrics:
+  # Scale based on CPU usage
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  
+  # Scale based on memory usage
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+      - type: Pods
+        value: 2
+        periodSeconds: 15
+      selectPolicy: Max
+    
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 15

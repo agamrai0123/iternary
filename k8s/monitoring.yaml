@@ -1,0 +1,310 @@
+# Prometheus ServiceMonitor for metrics collection
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: itinerary-backend-monitor
+  namespace: default
+  labels:
+    app: itinerary-backend
+
+spec:
+  selector:
+    matchLabels:
+      app: itinerary-backend
+  
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+    scheme: http
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: itinerary-backend-alerts
+  namespace: default
+  labels:
+    prometheus: kube-prometheus
+
+spec:
+  groups:
+  - name: itinerary.rules
+    interval: 30s
+    rules:
+    
+    # Alert when pod is down
+    - alert: ItineraryBackendDown
+      expr: up{job="itinerary-backend"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Itinerary Backend is down"
+        description: "Itinerary Backend pod at {{ $labels.instance }} has not been responding for more than 2 minutes"
+    
+    # Alert when error rate is high
+    - alert: HighErrorRate
+      expr: |
+        (sum(rate(http_requests_total{status=~"5.."}[5m])) by (job)) / 
+        (sum(rate(http_requests_total[5m])) by (job)) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate for {{ $labels.job }} is above 5%"
+    
+    # Alert when response time is high
+    - alert: HighResponseTime
+      expr: histogram_quantile(0.95, http_request_duration_seconds_bucket) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High response time"
+        description: "95th percentile response time is above 1s"
+    
+    # Alert when database connection pool is exhausted
+    - alert: DatabaseConnectionExhausted
+      expr: db_connections_in_use / db_connections_max > 0.8
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Database connection pool utilization high"
+        description: "Database connections in use is {{ $value | humanizePercentage }}"
+    
+    # Alert when cache hit rate is low
+    - alert: LowCacheHitRate
+      expr: cache_hit_rate < 0.5
+      for: 5m
+      labels:
+        severity: info
+      annotations:
+        summary: "Low cache hit rate"
+        description: "Cache hit rate is below 50%"
+
+---
+# Logging Configuration for Fluentd
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+  namespace: default
+  labels:
+    app: fluentd
+
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      path /var/log/containers/*itinerary-backend*.log
+      pos_file /var/log/fluentd-containers.log.pos
+      tag kubernetes.*
+      read_from_head true
+      <parse>
+        @type json
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+    </source>
+
+    <filter kubernetes.**>
+      @type kubernetes_metadata
+      kubernetes_url "#{ENV['FLUENT_FILTER_KUBERNETES_URL'] || 'https://' + ENV.fetch('KUBERNETES_SERVICE_HOST') + ':' + ENV.fetch('KUBERNETES_SERVICE_PORT') + '/api'}"
+      verify_ssl "#{ENV['KUBERNETES_VERIFY_SSL'] || 'true'}"
+      ca_file "#{ENV['KUBERNETES_CA_FILE']}"
+      use_journal "#{ENV['FLUENT_USE_JOURNAL'] || 'false'}"
+      container_log_symlink_regex /^(?<namespace_name>[^_]+)_(?<pod_name>[a-z0-9](?:[-a-z0-9]*[a-z0-9])?(?:\.[a-z0-9](?:[-a-z0-9]*[a-z0-9])?)*)_(?<container_name>.+)-(?<container_id>[a-z0-9]{64})\.log$/
+      container_log_symlink_regex_replace_dir /var/log/containers
+      watch_retry_interval_seconds 3
+    </filter>
+
+    <match kubernetes.var.log.containers.**itinerary-backend**.log>
+      @type elasticsearch
+      @id output_es
+      @log_level info
+      compress gzip
+      include_tag_key true
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST'] || 'elasticsearch'}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT'] || '9200'}"
+      scheme "#{ENV['FLUENT_ELASTICSEARCH_SCHEME'] || 'http'}"
+      ssl_verify "#{ENV['FLUENT_ELASTICSEARCH_SSL_VERIFY'] || 'true'}"
+      logstash_format true
+      logstash_prefix itinerary-backend
+      logstash_prefix_separator _
+      include_timestamp false
+      template_name itinerary-backend
+      template_file /etc/fluent/templates/template.json
+      template_overwrite false
+      suppress_type_name true
+      use_legacy_prefix_key false
+      
+      <buffer tag,logstash_prefix,logstash_dateformat>
+        @type file
+        path /var/log/fluentd-buffers/kubernetes.system.var.log.containers.es
+        flush_thread_count 2
+        flush_interval 5s
+        flush_at_shutdown true
+        retry_type exponential_backoff
+        retry_timeout 72h
+        retry_max_interval 30
+        retry_max_times 17
+        retry_secondary_threshold 0.1
+        chunk_limit_size "#{ENV['FLUENT_ELASTICSEARCH_BUFFER_CHUNK_LIMIT_SIZE'] || '8M'}"
+        queue_limit_length 32
+        overflow_action drop_oldest_chunk
+      </buffer>
+    </match>
+
+    <match **>
+      @type null
+    </match>
+
+---
+# AlertManager ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: default
+
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+      slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+    route:
+      group_by: ['alertname', 'cluster', 'job']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 12h
+      receiver: 'default'
+      routes:
+      - match:
+          severity: critical
+        receiver: critical
+        group_wait: 0s
+        repeat_interval: 5m
+      - match:
+          severity: warning
+        receiver: warning
+        repeat_interval: 1h
+      - match:
+          severity: info
+        receiver: info
+        repeat_interval: 24h
+
+    receivers:
+    - name: 'default'
+      slack_configs:
+      - channel: '#alerts'
+        title: 'Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    - name: 'critical'
+      slack_configs:
+      - channel: '#critical-alerts'
+        title: '🚨 CRITICAL'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    - name: 'warning'
+      slack_configs:
+      - channel: '#warnings'
+        title: '⚠️ WARNING'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+    - name: 'info'
+      slack_configs:
+      - channel: '#info'
+        title: 'ℹ️ INFO'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-itinerary
+  namespace: default
+  labels:
+    grafana_dashboard: "1"
+
+data:
+  itinerary-dashboard.json: |
+    {
+      "annotations": {
+        "list": [
+          {
+            "builtIn": 1,
+            "datasource": "-- Prometheus --",
+            "enable": true,
+            "hide": true,
+            "iconColor": "rgba(0, 211, 255, 1)",
+            "name": "Annotations & Alerts",
+            "type": "dashboard"
+          }
+        ]
+      },
+      "editable": true,
+      "gnetId": null,
+      "graphTooltip": 0,
+      "id": null,
+      "links": [],
+      "panels": [
+        {
+          "datasource": "Prometheus",
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "red", "value": 80}
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "id": 2,
+          "options": {
+            "orientation": "auto",
+            "reduceOptions": {
+              "values": false,
+              "calcs": ["lastNotNull"]
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "up{job='itinerary-backend'}",
+              "refId": "A"
+            }
+          ],
+          "title": "Service Status",
+          "type": "gauge"
+        }
+      ],
+      "refresh": "30s",
+      "schemaVersion": 30,
+      "style": "dark",
+      "tags": ["itinerary","backend","production"],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-6h",
+        "to": "now"
+      },
+      "timepicker": {},
+      "timezone": "",
+      "title": "Itinerary Backend - Production Monitoring",
+      "uid": "itinerary-prod",
+      "version": 0
+    }

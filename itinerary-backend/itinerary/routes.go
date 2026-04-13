@@ -34,6 +34,19 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	handlers := NewHandlers(service, logger, metrics)
 	authHandlers := NewAuthHandlers(service, authService, logger, metrics)
 
+	// ==================== Health & Monitoring Routes (NO AUTH) ====================
+	// These are critical for Kubernetes and infrastructure monitoring
+	router.GET("/health", handlers.HealthCheckHandler)       // Liveness probe
+	router.GET("/ready", handlers.ReadinessHandler)         // Readiness probe
+	router.GET("/live", handlers.LivenessHandler)          // Startup probe
+	router.GET("/status", handlers.StatusHandler)          // Detailed status
+	router.GET("/metrics", handlers.MetricsHandler)        // Prometheus metrics
+	
+	// Health check aliases for compatibility
+	router.GET("/healthz", handlers.HealthCheckHandler)
+	router.GET("/readyz", handlers.ReadinessHandler)
+	router.GET("/livez", handlers.LivenessHandler)
+
 	// ==================== Web Routes (HTML Pages) ====================
 	// Auth pages (no authentication required)
 	router.GET("/login", handlers.LoginPage)

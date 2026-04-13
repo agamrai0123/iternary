@@ -1,16 +1,34 @@
-name: Deploy to Render
+name: Build, Test & Deploy
 
 on:
   push:
     branches:
       - main
+      - develop
+    paths:
+      - 'itinerary-backend/**'
+      - '.github/workflows/deploy.yml'
+      - 'docker/**'
+      - 'k8s/**'
+  
   pull_request:
     branches:
       - main
+      - develop
+    paths:
+      - 'itinerary-backend/**'
+      - 'docker/**'
+  
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/itinerary-backend
+  GO_VERSION: '1.25'
 
 jobs:
   test:
-    name: Test & Build
+    name: Run Integration Tests
     runs-on: ubuntu-latest
     
     services:
@@ -50,7 +68,7 @@ jobs:
         working-directory: ./itinerary-backend
         run: go mod download
 
-      - name: Run tests
+      - name: Run unit tests
         working-directory: ./itinerary-backend
         env:
           DB_HOST: localhost
@@ -60,13 +78,80 @@ jobs:
           DB_NAME: itinerary_test
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-        run: go test -v ./...
+          GIN_MODE: test
+        run: |
+          go test -v -race -coverprofile=coverage.out ./itinerary/...
+          echo "✅ Unit tests passed"
+
+      - name: Run integration tests (Day 6)
+        working-directory: ./itinerary-backend
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: itinerary_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          go test -v ./itinerary/integration_tests -timeout 60s
+          echo "✅ Integration tests passed"
 
       - name: Build application
         working-directory: ./itinerary-backend
-        run: go build -o itinerary-backend .
+        run: |
+          go build -v -o itinerary-backend .
+          echo "✅ Application built successfully"
 
-  deploy:
+  build-docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name != 'pull_request'
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=semver,pattern={{version}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./itinerary-backend
+          file: ./docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        env:
+          DOCKER_BUILDKIT: 1
+
+  deploy-render:
+    name: Deploy to Render
     name: Deploy to Render
     runs-on: ubuntu-latest
     needs: test
