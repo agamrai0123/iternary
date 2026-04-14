@@ -13,15 +13,6 @@ type SessionCache struct {
 	prefix string
 }
 
-// Session represents user session data
-type Session struct {
-	ID        string                 `json:"id"`
-	UserID    string                 `json:"user_id"`
-	Data      map[string]interface{} `json:"data"`
-	CreatedAt time.Time              `json:"created_at"`
-	ExpiresAt time.Time              `json:"expires_at"`
-}
-
 // NewSessionCache creates a new session cache
 func NewSessionCache(client *Client) *SessionCache {
 	return &SessionCache{

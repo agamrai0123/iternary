@@ -1,6 +1,68 @@
 package groups
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+// ============================================================================
+// ERROR TYPES
+// ============================================================================
+
+// ErrorCode represents an error code
+type ErrorCode string
+
+const (
+	ErrInvalidInput   ErrorCode = "INVALID_INPUT"
+	ErrNotFound       ErrorCode = "NOT_FOUND"
+	ErrDatabaseError  ErrorCode = "DATABASE_ERROR"
+	ErrValidationError ErrorCode = "VALIDATION_ERROR"
+)
+
+// APIError represents a structured API error
+type APIError struct {
+	Code       ErrorCode `json:"code"`
+	Message    string    `json:"message"`
+	StatusCode int       `json:"status_code"`
+	Details    string    `json:"details,omitempty"`
+}
+
+func (e *APIError) Error() string {
+	return fmt.Sprintf("[%s] %s: %s", e.Code, e.Message, e.Details)
+}
+
+// NewAPIError creates a new API error
+func NewAPIError(code ErrorCode, message string, details string) *APIError {
+	return &APIError{
+		Code:    code,
+		Message: message,
+		Details: details,
+	}
+}
+
+// ============================================================================
+// TYPE ALIASES (Core Models)
+// ============================================================================
+
+// User represents a user in the system
+type User struct {
+	ID        string    `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Destination represents a travel destination
+type Destination struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Country     string    `json:"country"`
+	Description string    `json:"description"`
+	Image       string    `json:"image_url"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
 
 // ============================================================================
 // GROUP TRIP MODELS

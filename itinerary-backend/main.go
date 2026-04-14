@@ -44,8 +44,45 @@ func main() {
 	// Initialize auth service
 	authService := itinerary.NewAuthService(db, logger)
 
+	// Initialize MFA and OAuth components
+	// MFA manager
+	totpMgr := itinerary.NewTOTPManager("Iternary")
+	logger.Info("TOTP manager initialized")
+
+	// OAuth manager
+	oauthMgr := itinerary.NewOAuthManager()
+
+	// Register OAuth providers from environment variables
+	githubClientID := os.Getenv("GITHUB_OAUTH_CLIENT_ID")
+	githubClientSecret := os.Getenv("GITHUB_OAUTH_CLIENT_SECRET")
+	if githubClientID != "" && githubClientSecret != "" {
+		githubRedirectURL := os.Getenv("OAUTH_REDIRECT_URL")
+		if githubRedirectURL == "" {
+			githubRedirectURL = "http://localhost:8080/api/v1/oauth/callback/github"
+		}
+		if err := oauthMgr.RegisterGitHubProvider(githubClientID, githubClientSecret, githubRedirectURL); err != nil {
+			logger.Warn("failed to register GitHub OAuth: " + err.Error())
+		} else {
+			logger.Info("GitHub OAuth provider registered")
+		}
+	}
+
+	googleClientID := os.Getenv("GOOGLE_OAUTH_CLIENT_ID")
+	googleClientSecret := os.Getenv("GOOGLE_OAUTH_CLIENT_SECRET")
+	if googleClientID != "" && googleClientSecret != "" {
+		googleRedirectURL := os.Getenv("OAUTH_REDIRECT_URL")
+		if googleRedirectURL == "" {
+			googleRedirectURL = "http://localhost:8080/api/v1/oauth/callback/google"
+		}
+		if err := oauthMgr.RegisterGoogleProvider(googleClientID, googleClientSecret, googleRedirectURL); err != nil {
+			logger.Warn("failed to register Google OAuth: " + err.Error())
+		} else {
+			logger.Info("Google OAuth provider registered")
+		}
+	}
+
 	// Initialize router
-	router := itinerary.SetupRoutes(svc, logger, metrics, authService)
+	router := itinerary.SetupRoutes(svc, logger, metrics, authService, totpMgr, oauthMgr)
 
 	// Run server
 	port := config.Server.Port

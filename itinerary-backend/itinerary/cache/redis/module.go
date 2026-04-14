@@ -1,15 +1,6 @@
 // Package redis provides Redis-based caching utilities for the Itinerary application
 package redis
 
-import (
-	"errors"
-)
-
-var (
-	ErrCacheMiss = errors.New("cache miss")
-	ErrNilValue  = errors.New("nil value")
-)
-
 // Cache is the main cache interface for all implementations
 type Cache interface {
 	Get(key string) (string, error)

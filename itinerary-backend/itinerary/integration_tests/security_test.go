@@ -1,8 +1,6 @@
 package itinerary
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 	"sync"
@@ -35,8 +33,6 @@ func TestSQLInjectionPreparedStatements(t *testing.T) {
 
 	for _, payload := range injectionPayloads {
 		// Prepared statement query (safe)
-		query := "SELECT * FROM users WHERE username = ?"
-
 		// The parameter is treated as data, not SQL code
 		// So injection attempts are rendered harmless
 		safeName := payload
@@ -195,7 +191,8 @@ func TestErrorMessageSafety(t *testing.T) {
 func TestRateLimitingBasicFunctionality(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	userID := "user:security:test"
 	maxRequests := 10
@@ -207,10 +204,10 @@ func TestRateLimitingBasicFunctionality(t *testing.T) {
 	// Simulate requests
 	for i := 0; i < 20; i++ {
 		// Check current count
-		countVal, found := cacheManager.Get(rateLimitKey)
+		countVal, err := cacheManager.Get(rateLimitKey)
 		count := 0
 
-		if found {
+		if err == nil {
 			if c, ok := countVal.(float64); ok {
 				count = int(c)
 			}
@@ -235,7 +232,8 @@ func TestRateLimitingBasicFunctionality(t *testing.T) {
 func TestRateLimitingAcrossMultipleUsers(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	maxRequests := 5
 	NumUsers := 5
@@ -250,10 +248,10 @@ func TestRateLimitingAcrossMultipleUsers(t *testing.T) {
 
 		// Each user tries to make 10 requests
 		for req := 0; req < 10; req++ {
-			countVal, found := cacheManager.Get(rateLimitKey)
+			countVal, err := cacheManager.Get(rateLimitKey)
 			count := 0
 
-			if found {
+			if err == nil {
 				if c, ok := countVal.(float64); ok {
 					count = int(c)
 				}
@@ -282,7 +280,8 @@ func TestRateLimitingAcrossMultipleUsers(t *testing.T) {
 func TestRateLimitingWindowReset(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	userID := "user:window:test"
 	maxRequests := 3
@@ -291,9 +290,9 @@ func TestRateLimitingWindowReset(t *testing.T) {
 
 	// First window: make maxRequests
 	for i := 0; i < maxRequests; i++ {
-		countVal, _ := cacheManager.Get(rateLimitKey)
+		countVal, err := cacheManager.Get(rateLimitKey)
 		count := 0
-		if countVal != nil {
+		if err == nil {
 			if c, ok := countVal.(float64); ok {
 				count = int(c)
 			}
@@ -302,7 +301,7 @@ func TestRateLimitingWindowReset(t *testing.T) {
 	}
 
 	// Try one more - should fail
-	countVal, _ := cacheManager.Get(rateLimitKey)
+	countVal, err := cacheManager.Get(rateLimitKey)
 	if countVal != nil {
 		if c, ok := countVal.(float64); ok && int(c) >= maxRequests {
 			t.Log("✓ Rate limit enforced in first window")
@@ -313,13 +312,13 @@ func TestRateLimitingWindowReset(t *testing.T) {
 	time.Sleep(windowDuration + 50*time.Millisecond)
 
 	// Window should have reset - key should be gone or expired
-	if _, found := cacheManager.Get(rateLimitKey); !found {
+	if _, err := cacheManager.Get(rateLimitKey); err != nil {
 		t.Log("✓ Rate limit window reset after expiry")
 	}
 
 	// Should now be able to make requests again
 	cacheManager.Set(rateLimitKey, float64(1), windowDuration)
-	if _, found := cacheManager.Get(rateLimitKey); found {
+	if _, err := cacheManager.Get(rateLimitKey); err == nil {
 		t.Log("✓ New requests allowed after window reset")
 	}
 }
@@ -330,7 +329,8 @@ func TestDistributedRateLimitingConsistency(t *testing.T) {
 
 	// Simulate multiple cache instances that should share state
 	// In real scenario, these would be Redis instances
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	userID := "user:distributed"
 	windowSize := time.Minute
@@ -343,10 +343,10 @@ func TestDistributedRateLimitingConsistency(t *testing.T) {
 		rateLimitKey := fmt.Sprintf("rate_limit:%s", userID)
 
 		for i := 0; i < 5; i++ {
-			countVal, found := cacheManager.Get(rateLimitKey)
+			countVal, _ := cacheManager.Get(rateLimitKey)  // Ignore error for test
 			count := 0
 
-			if found {
+			if countVal != nil {
 				if c, ok := countVal.(float64); ok {
 					count = int(c)
 				}
@@ -376,7 +376,8 @@ func TestDistributedRateLimitingConsistency(t *testing.T) {
 func TestSessionExpiration(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	sessionID := "sess_abc123"
 	userID := 42
@@ -390,7 +391,7 @@ func TestSessionExpiration(t *testing.T) {
 	cacheManager.Set(sessionID, sessionData, sessionTimeout)
 
 	// Verify session exists
-	if _, found := cacheManager.Get(sessionID); !found {
+	if _, err := cacheManager.Get(sessionID); err != nil {
 		t.Error("Session not created")
 	}
 
@@ -398,7 +399,7 @@ func TestSessionExpiration(t *testing.T) {
 	time.Sleep(sessionTimeout + 50*time.Millisecond)
 
 	// Verify session is expired
-	if _, found := cacheManager.Get(sessionID); found {
+	if _, err := cacheManager.Get(sessionID); err == nil {
 		t.Error("Session did not expire after TTL")
 	} else {
 		t.Log("✓ Session properly expired")
@@ -409,7 +410,8 @@ func TestSessionExpiration(t *testing.T) {
 func TestSessionDataIsolation(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	// Create sessions for multiple users
 	sessions := make(map[string]map[string]interface{})
@@ -427,15 +429,17 @@ func TestSessionDataIsolation(t *testing.T) {
 	for userID := 1; userID <= 5; userID++ {
 		sessionID := fmt.Sprintf("session:user:%d", userID)
 
-		sessionVal, found := cacheManager.Get(sessionID)
-		if !found {
+		sessionVal, err := cacheManager.Get(sessionID)
+		if err != nil {
 			t.Errorf("Session for user %d not found", userID)
 			continue
 		}
 
 		if sessionData, ok := sessionVal.(map[string]interface{}); ok {
-			if id, exists := sessionData["user_id"]; exists && id == float64(userID) {
-				t.Logf("✓ User %d session isolated correctly", userID)
+			if id, exists := sessionData["user_id"]; exists {
+				if uid, ok := id.(float64); ok && int(uid) == userID {
+					t.Logf("✓ User %d session isolated correctly", userID)
+				}
 			}
 		}
 	}
@@ -445,7 +449,8 @@ func TestSessionDataIsolation(t *testing.T) {
 func TestSessionHijackingPrevention(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	validSessionID := "sess_valid_token_12345"
 	hijackSessionID := "sess_valid_token_12345_hijacked"
@@ -461,14 +466,14 @@ func TestSessionHijackingPrevention(t *testing.T) {
 	cacheManager.Set(validSessionID, sessionData, time.Hour)
 
 	// Attempt to use modified session ID
-	if _, found := cacheManager.Get(hijackSessionID); found {
+	if _, err := cacheManager.Get(hijackSessionID); err == nil {
 		t.Error("Session hijacking attempt succeeded")
 	} else {
 		t.Log("✓ Session hijacking attempt prevented (invalid token)")
 	}
 
 	// Verify original session still valid
-	if _, found := cacheManager.Get(validSessionID); found {
+	if _, err := cacheManager.Get(validSessionID); err == nil {
 		t.Log("✓ Valid session still accessible")
 	}
 }
@@ -477,7 +482,8 @@ func TestSessionHijackingPrevention(t *testing.T) {
 func TestSessionReplayAttackPrevention(t *testing.T) {
 	setupTestDB(t)
 
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	sessionID := "sess_replay_test"
 	sessionData := map[string]interface{}{
@@ -489,7 +495,7 @@ func TestSessionReplayAttackPrevention(t *testing.T) {
 	cacheManager.Set(sessionID, sessionData, time.Hour)
 
 	// First use - valid
-	if val, found := cacheManager.Get(sessionID); found {
+	if val, err := cacheManager.Get(sessionID); err == nil {
 		if data, ok := val.(map[string]interface{}); ok {
 			if used, ok := data["used"].(bool); ok && !used {
 				t.Log("✓ First session use allowed")
@@ -501,7 +507,7 @@ func TestSessionReplayAttackPrevention(t *testing.T) {
 	}
 
 	// Second use with same session - should be rejected
-	if val, found := cacheManager.Get(sessionID); found {
+	if val, err := cacheManager.Get(sessionID); err == nil {
 		if data, ok := val.(map[string]interface{}); ok {
 			if used, ok := data["used"].(bool); ok && used {
 				t.Log("✓ Session replay attack prevented (session already used)")
@@ -558,7 +564,8 @@ func TestConcurrentSQLInjectionAttempts(t *testing.T) {
 
 // BenchmarkSessionCachePerformance benchmarks session cache operations
 func BenchmarkSessionCachePerformance(b *testing.B) {
-	cacheManager := cache.NewFactory().Memory().Build()
+	cacheManager := cache.NewMemoryCache()
+	defer cacheManager.Close()
 
 	sessionID := "bench_session_id"
 	sessionData := map[string]interface{}{

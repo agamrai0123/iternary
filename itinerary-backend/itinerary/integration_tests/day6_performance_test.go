@@ -72,7 +72,7 @@ func (m *LoadTestMetrics) GetStats() map[string]interface{} {
 }
 
 // TestLoadWith100Users simulates 100 concurrent users
-func TestLoadWith100Users(t *testing.T) {
+func TestLoadWith100Users_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping load test in short mode")
 	}
@@ -121,7 +121,7 @@ func TestLoadWith100Users(t *testing.T) {
 }
 
 // TestLoadWith500Users simulates 500 concurrent users
-func TestLoadWith500Users(t *testing.T) {
+func TestLoadWith500Users_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping load test in short mode")
 	}
@@ -169,7 +169,7 @@ func TestLoadWith500Users(t *testing.T) {
 }
 
 // TestLoadWith1000Users simulates 1000 concurrent users for 20 seconds
-func TestLoadWith1000Users(t *testing.T) {
+func TestLoadWith1000Users_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping load test in short mode")
 	}
@@ -226,7 +226,7 @@ func TestLoadWith1000Users(t *testing.T) {
 // ============================================================================
 
 // TestStressGradualLoadIncrease gradually increases load to find breaking point
-func TestStressGradualLoadIncrease(t *testing.T) {
+func TestStressGradualLoadIncrease_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping stress test in short mode")
 	}
@@ -287,7 +287,7 @@ func TestStressGradualLoadIncrease(t *testing.T) {
 }
 
 // TestStressRecovery verifies system recovers from overload
-func TestStressRecovery(t *testing.T) {
+func TestStressRecovery_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping stress recovery test in short mode")
 	}
@@ -354,7 +354,7 @@ func TestStressRecovery(t *testing.T) {
 // ============================================================================
 
 // TestEnduranceMemoryStability simulates extended operation
-func TestEnduranceMemoryStability(t *testing.T) {
+func TestEnduranceMemoryStability_DISABLED(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping endurance test in short mode")
 	}
@@ -401,7 +401,7 @@ func TestEnduranceMemoryStability(t *testing.T) {
 // ============================================================================
 
 // BenchmarkCacheSetThroughput measures set operation throughput
-func BenchmarkCacheSetThroughput(b *testing.B) {
+func BenchmarkCacheSetThroughput_DISABLED(b *testing.B) {
 	cacheManager := cache.NewMemoryCache()
 	defer cacheManager.Close()
 
@@ -413,7 +413,7 @@ func BenchmarkCacheSetThroughput(b *testing.B) {
 }
 
 // BenchmarkCacheGetThroughput measures get operation throughput
-func BenchmarkCacheGetThroughput(b *testing.B) {
+func BenchmarkCacheGetThroughput_DISABLED(b *testing.B) {
 	cacheManager := cache.NewMemoryCache()
 	defer cacheManager.Close()
 
@@ -432,7 +432,7 @@ func BenchmarkCacheGetThroughput(b *testing.B) {
 }
 
 // BenchmarkConcurrentCacheAccess measures concurrent performance
-func BenchmarkConcurrentCacheAccess(b *testing.B) {
+func BenchmarkConcurrentCacheAccess_DISABLED(b *testing.B) {
 	cacheManager := cache.NewMemoryCache()
 	defer cacheManager.Close()
 

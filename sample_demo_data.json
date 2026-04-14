@@ -1,0 +1,214 @@
+{
+  "metadata": {
+    "title": "Sample Demo Data for Itinerary Application",
+    "generated": "2026-04-13",
+    "status": "Ready for Display",
+    "total_users": 3,
+    "total_itineraries": 5,
+    "total_activities": 38
+  },
+  "users": [
+    {
+      "id": 1,
+      "email": "john.travel@example.com",
+      "name": "John Traveler",
+      "bio": "Adventure seeker exploring the world",
+      "created_at": "2026-04-13T06:30:00Z",
+      "verified": true
+    },
+    {
+      "id": 2,
+      "email": "sarah.wanderer@example.com",
+      "name": "Sarah Wanderer",
+      "bio": "Cultural explorer and food enthusiast",
+      "created_at": "2026-04-13T06:31:00Z",
+      "verified": true
+    },
+    {
+      "id": 3,
+      "email": "mike.adventure@example.com",
+      "name": "Mike Adventure",
+      "bio": "Mountain climber and nature photographer",
+      "created_at": "2026-04-13T06:32:00Z",
+      "verified": true
+    }
+  ],
+  "itineraries": [
+    {
+      "id": 1,
+      "user_id": 1,
+      "title": "Paris Spring Break 2026",
+      "description": "Romantic getaway to Paris with museum visits and fine dining",
+      "destination": "Paris, France",
+      "start_date": "2026-04-15",
+      "end_date": "2026-04-22",
+      "duration_days": 7,
+      "created_at": "2026-04-13T06:30:30Z",
+      "activities": 7,
+      "highlights": [
+        "Eiffel Tower Summit",
+        "Louvre Museum",
+        "Versailles Palace",
+        "Seine River Cruise"
+      ]
+    },
+    {
+      "id": 2,
+      "user_id": 2,
+      "title": "Tokyo & Kyoto Adventure",
+      "description": "Explore modern Tokyo and traditional Kyoto temples",
+      "destination": "Japan",
+      "start_date": "2026-05-01",
+      "end_date": "2026-05-14",
+      "duration_days": 14,
+      "created_at": "2026-04-13T06:31:30Z",
+      "activities": 8,
+      "highlights": [
+        "Shibuya & Shinjuku",
+        "Mount Fuji Day Trip",
+        "Fushimi Inari Shrine",
+        "Arashiyama Bamboo Grove"
+      ]
+    },
+    {
+      "id": 3,
+      "user_id": 1,
+      "title": "NYC Food & Culture Tour",
+      "description": "Ultimate New York City experience with food, art, and Broadway",
+      "destination": "New York City, USA",
+      "start_date": "2026-06-10",
+      "end_date": "2026-06-17",
+      "duration_days": 7,
+      "created_at": "2026-04-13T06:32:30Z",
+      "activities": 7,
+      "highlights": [
+        "Central Park",
+        "Broadway Show",
+        "Statue of Liberty",
+        "Brooklyn Bridge"
+      ]
+    },
+    {
+      "id": 4,
+      "user_id": 3,
+      "title": "Barcelona Beach & Architecture",
+      "description": "Modern architecture, beaches, and Mediterranean culture",
+      "destination": "Barcelona, Spain",
+      "start_date": "2026-07-05",
+      "end_date": "2026-07-12",
+      "duration_days": 7,
+      "created_at": "2026-04-13T06:33:30Z",
+      "activities": 7,
+      "highlights": [
+        "Sagrada Familia",
+        "Park Güell",
+        "Montjüïc Castle",
+        "Barceloneta Beach"
+      ]
+    },
+    {
+      "id": 5,
+      "user_id": 2,
+      "title": "Dubai Luxury Escape",
+      "description": "Ultra-modern city with luxury shopping and desert experiences",
+      "destination": "Dubai, UAE",
+      "start_date": "2026-08-01",
+      "end_date": "2026-08-07",
+      "duration_days": 6,
+      "created_at": "2026-04-13T06:34:30Z",
+      "activities": 6,
+      "highlights": [
+        "Burj Khalifa",
+        "Desert Safari",
+        "Palm Jumeirah",
+        "Gold Souk"
+      ]
+    }
+  ],
+  "activities_summary": {
+    "paris": {
+      "itinerary": "Paris Spring Break 2026",
+      "count": 7,
+      "items": [
+        "Arrival in Paris",
+        "Eiffel Tower & Trocadéro",
+        "Louvre Museum",
+        "Versailles Palace",
+        "Montmartre & Sacré-Cœur",
+        "Seine River Cruise",
+        "Shopping & Café Culture"
+      ]
+    },
+    "tokyo_kyoto": {
+      "itinerary": "Tokyo & Kyoto Adventure",
+      "count": 8,
+      "items": [
+        "Arrive in Tokyo",
+        "Shibuya & Shinjuku",
+        "Senso-ji Temple",
+        "Mount Fuji Day Trip",
+        "Travel to Kyoto",
+        "Fushimi Inari Shrine",
+        "Arashiyama Bamboo Grove",
+        "Kinkaku-ji Temple"
+      ]
+    },
+    "nyc": {
+      "itinerary": "NYC Food & Culture Tour",
+      "count": 7,
+      "items": [
+        "Arrival & Manhattan",
+        "Central Park & Museums",
+        "Broadway Show",
+        "Statue of Liberty & Ellis Island",
+        "Greenwich Village & SoHo",
+        "Brooklyn Bridge & DUMBO",
+        "Food Tour & Shopping"
+      ]
+    },
+    "barcelona": {
+      "itinerary": "Barcelona Beach & Architecture",
+      "count": 7,
+      "items": [
+        "Arrive in Barcelona",
+        "Sagrada Familia",
+        "Park Güell",
+        "Montjüïc & Castle",
+        "Beach Day",
+        "La Rambla & Gothic Quarter",
+        "Food Tapas Night"
+      ]
+    },
+    "dubai": {
+      "itinerary": "Dubai Luxury Escape",
+      "count": 6,
+      "items": [
+        "Arrive in Dubai",
+        "Burj Khalifa & Dubai Mall",
+        "Desert Safari",
+        "Palm Jumeirah & Aquarium",
+        "Gold Souk & Spice Market",
+        "Spa & Beach Relaxation"
+      ]
+    }
+  },
+  "stats": {
+    "total_users_created": 3,
+    "total_itineraries_created": 5,
+    "total_activities_planned": 38,
+    "destinations_covered": [
+      "Paris, France",
+      "Tokyo, Japan",
+      "Kyoto, Japan",
+      "New York City, USA",
+      "Barcelona, Spain",
+      "Dubai, UAE"
+    ],
+    "total_travel_days": 48,
+    "avg_trip_duration_days": 8.2,
+    "date_range": {
+      "earliest": "2026-04-15",
+      "latest": "2026-08-07"
+    }
+  }
+}

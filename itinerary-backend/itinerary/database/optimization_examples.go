@@ -146,8 +146,7 @@ func ExamplePaginatedQuery(db *sql.DB) error {
 	// Get page 2 with 20 items per page
 	rows, err := builder.PaginatedQuery(ctx,
 		"SELECT id, name, email FROM users ORDER BY id",
-		pageSize=20,
-		pageNum=2)
+		20, 2)
 
 	if err != nil {
 		return err
@@ -316,8 +315,7 @@ func ExampleMultiTierOptimization(db *sql.DB) error {
 	// Execute with all optimizations
 	rows, err := builder.PaginatedQuery(ctx,
 		"SELECT id, name, email FROM users WHERE status = $1 ORDER BY created_at DESC",
-		pageSize=20,
-		pageNum=1,
+		20, 1,
 		"active")
 
 	if err != nil {
