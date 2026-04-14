@@ -79,13 +79,9 @@ func (h *Handlers) GetDestinations(c *gin.Context) {
 		"total_pages", totalPages,
 	)
 
-	c.JSON(http.StatusOK, PaginatedResponse{
-		Data:       destinations,
-		Total:      total,
-		Page:       page,
-		PageSize:   pageSize,
-		TotalPages: totalPages,
-	})
+	// Return plain array for frontend compatibility
+	// Frontend expects array directly, not wrapped in pagination object
+	c.JSON(http.StatusOK, destinations)
 }
 
 // GetItinerariesByDestination handles GET /api/destinations/:destinationId/itineraries
