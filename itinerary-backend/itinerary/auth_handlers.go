@@ -2,12 +2,20 @@ package itinerary
 
 // This file has been disabled - Service, AuthHandlers, and common.Logger types are not defined
 // See handlers.go for active authentication handlers
+	service     *Service
+	authService *AuthService
+	logger      *common.Logger
+	metrics     *Metrics
+}
+
+// NewAuthHandlers creates new auth handlers
+func NewAuthHandlers(service *Service, authService *AuthService, logger *common.Logger, metrics *Metrics) *AuthHandlers {
+	return &AuthHandlers{
 		service:     service,
 		authService: authService,
 		logger:      logger,
 		metrics:     metrics,
 	}
-}
 
 // Login handles POST /auth/login
 func (ah *AuthHandlers) Login(c *gin.Context) {

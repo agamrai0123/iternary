@@ -1,107 +1,70 @@
 package itinerary
 
-// This file has been disabled - Service type is not defined
-// TODO: Refactor routes to use available service types
+import (
+"github.com/gin-gonic/gin"
+"github.com/yourusername/itinerary-backend/itinerary/auth/mfa"
+"github.com/yourusername/itinerary-backend/itinerary/auth/oauth"
+"github.com/yourusername/itinerary-backend/itinerary/common"
+mfahandlers "github.com/yourusername/itinerary-backend/itinerary/handlers/mfa"
+oauthhandlers "github.com/yourusername/itinerary-backend/itinerary/handlers/oauth"
+)
 
-	// Create metrics middleware
-	metricsMiddleware := NewMetricsMiddleware(metrics, logger)
+// SetupRoutes sets up all API and web routes
+func SetupRoutes(service *Service, logger *common.Logger, metrics *Metrics, authService *AuthService, totpMgr *mfa.TOTPManager, oauthMgr *oauth.OAuthManager) *gin.Engine {
+router := gin.New()
 
-	// Create auth middleware
-	authMiddleware := NewAuthMiddleware(authService, logger)
+// Create metrics middleware
+metricsMiddleware := NewMetricsMiddleware(metrics, logger)
 
-	// Apply middleware stack with proper order
-	router.Use(metricsMiddleware.PanicRecoveryMiddleware()) // Panic recovery first
-	router.Use(logger.RequestLogger())                      // Request logging
-	router.Use(metricsMiddleware.MetricsHandler())          // Metrics collection
-	router.Use(metricsMiddleware.ErrorHandlerMiddleware())  // Error handling
-	router.Use(logger.ErrorLogger())                        // Error logging
+// Create auth middleware
+authMiddleware := NewAuthMiddleware(authService, logger)
 
-	// Set template functions before loading templates
-	router.SetFuncMap(TemplateFuncs())
+// Apply middleware stack with proper order
+router.Use(metricsMiddleware.PanicRecoveryMiddleware()) // Panic recovery first
+router.Use(logger.RequestLogger())                      // Request logging
+router.Use(metricsMiddleware.MetricsHandler())          // Metrics collection
+router.Use(metricsMiddleware.ErrorHandlerMiddleware())  // Error handling
+router.Use(logger.ErrorLogger())                        // Error logging
 
-	// Load templates
-	router.LoadHTMLGlob("templates/*.html")
+// Set template functions before loading templates
+router.SetFuncMap(TemplateFuncs())
 
-	// Serve static files (CSS, JS, images)
-	router.Static("/static", "./static")
+// Load templates
+router.LoadHTMLGlob("templates/*.html")
 
-	// Initialize handlers
-	handlers := NewHandlers(service, logger, metrics)
-	authHandlers := NewAuthHandlers(service, authService, logger, metrics)
+// Serve static files (CSS, JS, images)
+router.Static("/static", "./static")
 
-	// ==================== Web Routes (HTML Pages) ====================
-	// Auth pages (no authentication required)
-	router.GET("/login", handlers.LoginPage)
-	router.GET("/", handlers.LoginPage) // Redirect home to login
+// Initialize handlers
+handlers := NewHandlers(service, logger, metrics)
+authHandlers := NewAuthHandlers(service, authService, logger, metrics)
 
-	// Protected pages (require authentication)
-	router.GET("/dashboard", authMiddleware.OptionalAuth(), handlers.Dashboard)
-	router.GET("/plan-trip", authMiddleware.RequireAuth(), handlers.PlanTripPage)
-	router.GET("/my-trips", authMiddleware.RequireAuth(), handlers.MyTripsPage)
-	router.GET("/my-trips/:id", authMiddleware.RequireAuth(), handlers.MyTripDetail)
-	router.GET("/community", authMiddleware.OptionalAuth(), handlers.CommunityPage)
+// ==================== Web Routes (HTML Pages) ====================
+// Auth pages (no authentication required)
+router.GET("/login", handlers.LoginPage)
+router.GET("/", handlers.LoginPage) // Redirect home to login
 
-	// Legacy pages (kept for backward compatibility)
-	router.GET("/destination/:id", handlers.DestinationDetail)
-	router.GET("/itinerary/:id", handlers.ItineraryDetail)
-	router.GET("/create", handlers.CreateItineraryPage)
-	router.POST("/create", handlers.CreateItinerarySubmit)
-	router.GET("/search", handlers.SearchPage)
+// Protected pages (require authentication)
+router.GET("/dashboard", authMiddleware.OptionalAuth(), handlers.DasheAuth(), handlers.GetUserTrip)
+router.PUT("/api/user-trips/:id", authMideteUserTrip)
+router.GET("/api/userreAuth(), handlers.AddTripSegment)
+router.POST("/api/trip-segments/:id/photos", authMiddleware.RequireAuth(), handlers.AddTripPhoto)
+router.POST("/api/trip-segments/:id/review", authMiddleware.RequireAuth(), handlers.AddTripReview)
+router.POST("/api/user-trips/:id/publish", authMiddleware.RequireAuth(), handlers.PublishUserTrip)
 
-	// ==================== API Routes (JSON) ====================
-	// Health & Metrics
-	router.GET("/api/health", metricsMiddleware.HealthCheckEndpoint())
-	router.GET("/api/metrics", metricsMiddleware.MetricsEndpoint())
+// ==================== Authent.Login)
+router.POST("/auth/logout", authHandlers.Logout)
+router.GET("/auth/profile", authHandlers.GetProfile)
+router.PUT("/auth/profile", authHandlers.UpdateProfile)
 
-	// Destination API (no auth required)
-	router.GET("/api/destinations", handlers.GetDestinations)
-	router.GET("/api/cities", handlers.GetCitiesList)
-	router.GET("/api/cities/:cityId/trip-posts", handlers.GetTripPostsByCity)
+// ==================== Group Collaboration Routes (Phase A) =====nt 1) ====================
+mfaHandler := mfahandlers.NewHandler((*common.Database)(service.db), logger)
+mfahandlers.RegisterMFARoutes(router, mfaHandler)
+logger.Info("MFA routes registered")
 
-	// Itinerary API (no auth required)
-	router.GET("/api/destinations/:destinationId/itineraries", handlers.GetItinerariesByDestination)
-	router.GET("/api/itineraries/:itineraryId", handlers.GetItineraryDetail)
-	router.POST("/api/itineraries", handlers.CreateItinerary)
+// ====================logger, oauthMgr)
+oauthhandlers.RegisterOAuthRoutes(router, oauthHandler)
+logger.Info("OAuth routes registered")
 
-	// Like API (no auth required for MVP)
-	router.POST("/api/itineraries/:itineraryId/like", handlers.LikeItinerary)
-
-	// Comment API (no auth required for MVP)
-	router.POST("/api/itineraries/:itineraryId/comments", handlers.CommentOnItinerary)
-
-	// User Trip API (requires authentication)
-	router.POST("/api/user-trips", authMiddleware.RequireAuth(), handlers.CreateUserTrip)
-	router.GET("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.GetUserTrip)
-	router.PUT("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.UpdateUserTrip)
-	router.DELETE("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.DeleteUserTrip)
-	router.GET("/api/user-trips", authMiddleware.RequireAuth(), handlers.ListUserTrips)
-	router.POST("/api/user-trips/add-from-post", authMiddleware.RequireAuth(), handlers.AddTripPostToItinerary)
-	router.POST("/api/user-trips/:id/segments", authMiddleware.RequireAuth(), handlers.AddTripSegment)
-	router.POST("/api/trip-segments/:id/photos", authMiddleware.RequireAuth(), handlers.AddTripPhoto)
-	router.POST("/api/trip-segments/:id/mark-visited", authMiddleware.RequireAuth(), handlers.MarkSegmentVisited)
-	router.POST("/api/reviews", authMiddleware.RequireAuth(), handlers.SubmitReview)
-	router.POST("/api/trip-segments/:id/review", authMiddleware.RequireAuth(), handlers.AddTripReview)
-	router.POST("/api/user-trips/:id/publish", authMiddleware.RequireAuth(), handlers.PublishUserTrip)
-
-	// ==================== Authentication API Routes ====================
-	// Auth endpoints (no authentication required)
-	router.POST("/auth/login", authHandlers.Login)
-	router.POST("/auth/logout", authHandlers.Logout)
-	router.GET("/auth/profile", authHandlers.GetProfile)
-	router.PUT("/auth/profile", authHandlers.UpdateProfile)
-
-	// ==================== Group Collaboration Routes (Phase A) ====================
-	RegisterGroupRoutes(router, service, authMiddleware, logger)
-
-	// ==================== MFA Routes (Phase 2 Sprint 1) ====================
-	mfaHandler := mfahandlers.NewHandler((*common.Database)(service.db), (*common.Logger)(logger))
-	mfahandlers.RegisterMFARoutes(router, mfaHandler)
-	logger.Info("MFA routes registered")
-
-	// ==================== OAuth Routes (Phase 2 Sprint 1) ====================
-	oauthHandler := oauthhandlers.NewHandler((*common.Database)(service.db), (*common.Logger)(logger), oauthMgr)
-	oauthhandlers.RegisterOAuthRoutes(router, oauthHandler)
-	logger.Info("OAuth routes registered")
-
-	return router
+return router
 }

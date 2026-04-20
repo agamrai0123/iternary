@@ -1,7 +1,6 @@
 package itinerary
 
 // This file has been disabled - duplicate LoadTestMetrics type declaration
-	FailedRequests     int64
 	CacheHits          int64
 	CacheMisses        int64
 	mu                 sync.Mutex

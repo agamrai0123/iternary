@@ -2,7 +2,6 @@ package itinerary
 
 // This file has been disabled due to incompatibilities with cache API and duplicate definitions
 // TODO: Refactor to use compatible cache patterns and remove duplicate LoadTestMetrics
-	TotalRequests      int64
 	SuccessfulRequests int64
 	FailedRequests     int64
 	TotalDuration      time.Duration

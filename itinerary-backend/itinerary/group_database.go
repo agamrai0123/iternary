@@ -13,7 +13,7 @@ import (
 // ============================================================================
 
 // CreateGroupTrip creates a new group trip
-func (db *Database) CreateGroupTrip(groupTrip *GroupTrip) error {
+func (db *common.Database) CreateGroupTrip(groupTrip *GroupTrip) error {
 	id := uuid.New().String()
 	now := time.Now()
 

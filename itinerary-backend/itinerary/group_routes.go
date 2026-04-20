@@ -2,9 +2,6 @@ package itinerary
 
 // This file has been disabled - Service type is not defined
 // See groups/routes.go for available group routes
-	groupRoutes := router.Group("/api")
-	groupRoutes.Use(authMiddleware.RequireAuth())
-	{
 		// ==================== Group Trip Routes ====================
 		groupRoutes.POST("/group-trips", service.CreateGroupTripHandler)
 		groupRoutes.GET("/group-trips/:id", service.GetGroupTripHandler)

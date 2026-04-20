@@ -2,11 +2,16 @@ package itinerary
 
 // This file has been disabled - Service, Database, and Logger types are not defined properly
 // See service_*.go files for active service implementations
+	db     *common.Database
+	logger *common.Logger
+}
+
+// NewService creates a new service instance
+func NewService(db *common.Database, logger *common.Logger) *Service {
 	return &Service{
 		db:     db,
 		logger: logger,
 	}
-}
 
 // GetDestinations retrieves destinations with pagination
 func (s *Service) GetDestinations(page, pageSize int) ([]Destination, int, error) {
