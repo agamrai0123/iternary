@@ -81,7 +81,9 @@ const DashboardPage = () => {
         </div>
 
         {/* CTA Button */}
-        <button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 rounded-lg transition">
+        <button 
+          onClick={() => handleCityClick(city.id)}
+          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium py-2 rounded-lg transition">
           Explore Trips
         </button>
       </div>

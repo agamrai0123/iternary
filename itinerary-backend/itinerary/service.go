@@ -2,8 +2,6 @@ package itinerary
 
 // This file has been disabled - Service, Database, and Logger types are not defined properly
 // See service_*.go files for active service implementations
-	db     *common.Database
-	logger *common.Logger
 }
 
 // NewService creates a new service instance

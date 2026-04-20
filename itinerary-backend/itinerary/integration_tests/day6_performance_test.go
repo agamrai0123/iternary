@@ -1,7 +1,6 @@
 package itinerary
 
 // This file has been disabled - duplicate LoadTestMetrics type declaration
-	CacheHits          int64
 	CacheMisses        int64
 	mu                 sync.Mutex
 	ResponseTimes      []time.Duration

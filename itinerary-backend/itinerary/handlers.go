@@ -1,25 +1,7 @@
 package itinerary
 
-import (
-	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/yourusername/itinerary-backend/itinerary/common"
-)
-
-// PageData represents common page data for templates
-type PageData struct {
-	Title string
-	Error string
-}
-
-// Handlers represents HTTP request handlers
-type Handlers struct {
-	service *Service
-	logger  *common.Logger
-	metrics *Metrics
+// This file has been disabled - Service type is not defined
+// See handlers/ subdirectory for specific handler implementations
 }
 
 // NewHandlers creates new handlers

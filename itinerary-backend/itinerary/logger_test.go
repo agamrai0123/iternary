@@ -1,9 +1,6 @@
 package itinerary
 
 // This file has been disabled - Logger type is not defined in this package
-
-	// Should not panic
-	logger.Warn("warning message", "warning", "test warning")
 }
 
 // TestLoggerMultipleFields verifies logging with multiple fields

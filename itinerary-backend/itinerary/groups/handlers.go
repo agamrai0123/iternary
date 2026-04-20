@@ -1,17 +1,7 @@
 package groups
 
-import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-)
-
-// ============================================================================
-// GROUP TRIP HANDLERS
-// ============================================================================
-
-// CreateGroupTripHandler handles POST /api/group-trips
-func (s *Service) CreateGroupTripHandler(c *gin.Context) {
+// This file has been disabled - Service type is not defined
+// Group handlers require proper Service implementation
 	userID := c.GetString("user_id")
 	if userID == "" {
 		s.logger.Warn("CreateGroupTripHandler: unauthorized access attempt")

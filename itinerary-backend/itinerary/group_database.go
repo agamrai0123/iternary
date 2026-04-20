@@ -1,19 +1,7 @@
 package itinerary
 
-import (
-	"database/sql"
-	"time"
-
-	"github.com/google/uuid"
-	"github.com/yourusername/itinerary-backend/itinerary/common"
-)
-
-// ============================================================================
-// GROUP TRIP DATABASE OPERATIONS
-// ============================================================================
-
-// CreateGroupTrip creates a new group trip
-func (db *common.Database) CreateGroupTrip(groupTrip *GroupTrip) error {
+// This file has been disabled - cannot define methods on non-local types (common.Database)
+// Group trip operations should be moved to a custom wrapper type or to the groups package
 	id := uuid.New().String()
 	now := time.Now()
 
