@@ -197,7 +197,7 @@ func (h *Handlers) LikeTripPost(c *gin.Context) {
 
 	if err := h.service.IncrementTripPostLikes(postID); err != nil {
 		h.logger.Error("failed_to_like_trip_post", "error", err.Error())
-		apiErr := NewInternalError("like_failed")
+		apiErr := NewInternalServerError("like_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -211,7 +211,7 @@ func (h *Handlers) SaveTripPost(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -226,7 +226,7 @@ func (h *Handlers) SaveTripPost(c *gin.Context) {
 
 	if err := h.service.SaveTripPost(userID.(string), postID); err != nil {
 		h.logger.Error("failed_to_save_trip_post", "error", err.Error())
-		apiErr := NewInternalError("save_failed")
+		apiErr := NewInternalServerError("save_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -240,7 +240,7 @@ func (h *Handlers) AddTripPostToItinerary(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -279,7 +279,7 @@ func (h *Handlers) AddTripPostToItinerary(c *gin.Context) {
 
 	if err := h.service.CreateUserTrip(newTrip); err != nil {
 		h.logger.Error("failed_to_create_user_trip", "error", err.Error())
-		apiErr := NewInternalError("trip_creation_failed")
+		apiErr := NewInternalServerError("trip_creation_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}

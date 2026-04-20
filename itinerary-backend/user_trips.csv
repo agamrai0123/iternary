@@ -1,0 +1,6 @@
+id,user_id,title,destination_id,budget,duration,start_date,status,created_at,updated_at
+utrip-rd-001,user-001,First time in Bali: 6-day trip report and costs (Reddit Inspired),dest-003,19648.00,9,2026-04-20T08:12:21Z,completed,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+utrip-rd-002,user-002,"Goa in 5 days - beaches, food, and scooter routes (Reddit Inspired)",dest-001,16024.00,6,2026-04-20T08:12:21Z,completed,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+utrip-rd-003,user-003,Bali vs Goa for remote work travelers (Reddit Inspired),dest-003,19358.00,9,2026-04-20T08:12:21Z,completed,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+utrip-rd-004,user-001,Manali backpacking itinerary for beginners (Reddit Inspired),dest-002,10424.00,8,2026-04-20T08:12:21Z,completed,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+utrip-rd-005,user-002,How expensive is a one-week trip to Goa now? (Reddit Inspired),dest-001,8976.00,4,2026-04-20T08:12:21Z,completed,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z

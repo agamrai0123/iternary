@@ -2,6 +2,7 @@ package itinerary
 
 import (
 	"github.com/yourusername/itinerary-backend/itinerary/auth/mfa"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // NewTOTPManager creates and returns a new TOTP manager for MFA

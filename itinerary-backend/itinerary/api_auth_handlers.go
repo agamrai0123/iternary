@@ -134,7 +134,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 	// Store user in database
 	if err := h.service.CreateUser(user, passwordHash); err != nil {
 		h.logger.Error("failed_to_create_user", "error", err.Error())
-		apiErr := NewInternalError("user_creation_failed")
+		apiErr := NewInternalServerError("user_creation", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -143,7 +143,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 	session, err := h.authService.CreateSession(user.ID, 24*time.Hour)
 	if err != nil {
 		h.logger.Error("failed_to_create_session", "error", err.Error())
-		apiErr := NewInternalError("session_creation_failed")
+		apiErr := NewInternalServerError("session_creation", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -151,13 +151,13 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 	// Store session
 	if err := h.service.CreateSession(session); err != nil {
 		h.logger.Error("failed_to_store_session", "error", err.Error())
-		apiErr := NewInternalError("session_storage_failed")
+		apiErr := NewInternalServerError("session_storage", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
 
 	h.logger.Info("user_registered", "user_id", user.ID, "email", user.Email)
-	h.metrics.RecordSuccessfulAuth()
+	h.logger.Debug("login_success", "user_id", user.ID)
 
 	resp := LoginResponse{
 		Token: session.Token,
@@ -172,7 +172,7 @@ func (h *AuthHandlers) Register(c *gin.Context) {
 func (h *AuthHandlers) GetProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -182,7 +182,7 @@ func (h *AuthHandlers) GetProfile(c *gin.Context) {
 	user, err := h.service.GetUserByID(userID.(string))
 	if err != nil || user == nil {
 		h.logger.Warn("user_not_found", "user_id", userID)
-		apiErr := NewAuthError("unauthorized", "user not found")
+		apiErr := NewAuthenticationError("user not found")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -194,7 +194,7 @@ func (h *AuthHandlers) GetProfile(c *gin.Context) {
 func (h *AuthHandlers) UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -211,7 +211,7 @@ func (h *AuthHandlers) UpdateProfile(c *gin.Context) {
 
 	if err := h.service.UpdateProfile(userID.(string), &req); err != nil {
 		h.logger.Error("failed_to_update_profile", "error", err.Error())
-		apiErr := NewInternalError("profile_update_failed")
+		apiErr := NewInternalServerError("profile_update", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -224,7 +224,7 @@ func (h *AuthHandlers) UpdateProfile(c *gin.Context) {
 func (h *AuthHandlers) Logout(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}

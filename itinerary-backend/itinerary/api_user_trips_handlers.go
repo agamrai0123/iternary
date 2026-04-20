@@ -14,7 +14,7 @@ import (
 func (h *Handlers) CreateUserTrip(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -34,7 +34,7 @@ func (h *Handlers) CreateUserTrip(c *gin.Context) {
 
 	if err := h.service.CreateUserTrip(&req); err != nil {
 		h.logger.Error("failed_to_create_user_trip", "error", err.Error())
-		apiErr := NewInternalError("trip_creation_failed")
+		apiErr := NewInternalServerError("trip_creation_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -46,7 +46,7 @@ func (h *Handlers) CreateUserTrip(c *gin.Context) {
 func (h *Handlers) GetUserTrips(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -84,7 +84,7 @@ func (h *Handlers) GetUserTrips(c *gin.Context) {
 func (h *Handlers) GetUserTripByID(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -109,7 +109,7 @@ func (h *Handlers) GetUserTripByID(c *gin.Context) {
 	// Verify ownership
 	if trip.UserID != userID.(string) {
 		h.logger.Warn("unauthorized_trip_access", "trip_id", tripID, "user_id", userID)
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -121,7 +121,7 @@ func (h *Handlers) GetUserTripByID(c *gin.Context) {
 func (h *Handlers) UpdateUserTrip(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -144,7 +144,7 @@ func (h *Handlers) UpdateUserTrip(c *gin.Context) {
 	// Get existing trip to verify ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -156,7 +156,7 @@ func (h *Handlers) UpdateUserTrip(c *gin.Context) {
 
 	if err := h.service.UpdateUserTrip(&req); err != nil {
 		h.logger.Error("failed_to_update_user_trip", "error", err.Error())
-		apiErr := NewInternalError("trip_update_failed")
+		apiErr := NewInternalServerError("trip_update_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -168,7 +168,7 @@ func (h *Handlers) UpdateUserTrip(c *gin.Context) {
 func (h *Handlers) DeleteUserTrip(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -183,7 +183,7 @@ func (h *Handlers) DeleteUserTrip(c *gin.Context) {
 	// Verify ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -192,7 +192,7 @@ func (h *Handlers) DeleteUserTrip(c *gin.Context) {
 
 	if err := h.service.DeleteUserTrip(tripID); err != nil {
 		h.logger.Error("failed_to_delete_user_trip", "error", err.Error())
-		apiErr := NewInternalError("trip_deletion_failed")
+		apiErr := NewInternalServerError("trip_deletion_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -206,7 +206,7 @@ func (h *Handlers) DeleteUserTrip(c *gin.Context) {
 func (h *Handlers) AddTripSegment(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -229,7 +229,7 @@ func (h *Handlers) AddTripSegment(c *gin.Context) {
 	// Verify trip ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -241,7 +241,7 @@ func (h *Handlers) AddTripSegment(c *gin.Context) {
 
 	if err := h.service.AddTripSegment(&req); err != nil {
 		h.logger.Error("failed_to_add_trip_segment", "error", err.Error())
-		apiErr := NewInternalError("segment_creation_failed")
+		apiErr := NewInternalServerError("segment_creation_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -253,7 +253,7 @@ func (h *Handlers) AddTripSegment(c *gin.Context) {
 func (h *Handlers) UpdateTripSegment(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -270,7 +270,7 @@ func (h *Handlers) UpdateTripSegment(c *gin.Context) {
 	// Verify trip ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -290,7 +290,7 @@ func (h *Handlers) UpdateTripSegment(c *gin.Context) {
 
 	if err := h.service.UpdateTripSegment(&req); err != nil {
 		h.logger.Error("failed_to_update_trip_segment", "error", err.Error())
-		apiErr := NewInternalError("segment_update_failed")
+		apiErr := NewInternalServerError("segment_update_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -302,7 +302,7 @@ func (h *Handlers) UpdateTripSegment(c *gin.Context) {
 func (h *Handlers) DeleteTripSegment(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -319,7 +319,7 @@ func (h *Handlers) DeleteTripSegment(c *gin.Context) {
 	// Verify trip ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -328,7 +328,7 @@ func (h *Handlers) DeleteTripSegment(c *gin.Context) {
 
 	if err := h.service.DeleteTripSegment(segmentID); err != nil {
 		h.logger.Error("failed_to_delete_trip_segment", "error", err.Error())
-		apiErr := NewInternalError("segment_deletion_failed")
+		apiErr := NewInternalServerError("segment_deletion_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -340,7 +340,7 @@ func (h *Handlers) DeleteTripSegment(c *gin.Context) {
 func (h *Handlers) AddTripPhoto(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -357,7 +357,7 @@ func (h *Handlers) AddTripPhoto(c *gin.Context) {
 	// Verify trip ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -376,7 +376,7 @@ func (h *Handlers) AddTripPhoto(c *gin.Context) {
 
 	if err := h.service.AddTripPhoto(&req); err != nil {
 		h.logger.Error("failed_to_add_trip_photo", "error", err.Error())
-		apiErr := NewInternalError("photo_upload_failed")
+		apiErr := NewInternalServerError("photo_upload_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -388,7 +388,7 @@ func (h *Handlers) AddTripPhoto(c *gin.Context) {
 func (h *Handlers) AddTripReview(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
-		apiErr := NewAuthError("unauthorized", "user not authenticated")
+		apiErr := NewAuthenticationError("unauthorized", "user not authenticated")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -405,7 +405,7 @@ func (h *Handlers) AddTripReview(c *gin.Context) {
 	// Verify trip ownership
 	trip, _ := h.service.GetUserTripByID(tripID)
 	if trip == nil || trip.UserID != userID.(string) {
-		apiErr := NewAuthError("forbidden", "you do not have access to this trip")
+		apiErr := NewAuthenticationError("forbidden", "you do not have access to this trip")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -424,7 +424,7 @@ func (h *Handlers) AddTripReview(c *gin.Context) {
 
 	if err := h.service.AddTripReview(&req); err != nil {
 		h.logger.Error("failed_to_add_trip_review", "error", err.Error())
-		apiErr := NewInternalError("review_submission_failed")
+		apiErr := NewInternalServerError("review_submission_failed")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}

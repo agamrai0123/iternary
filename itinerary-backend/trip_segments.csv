@@ -1,0 +1,16 @@
+id,user_trip_id,day,name,type,location,latitude,longitude,notes,completed,created_at,updated_at
+tseg-rd-001-1,utrip-rd-001,1,Arrival + Local Check-in,transport,TBD,0,0,"Covered Seminyak, Ubud, and Nusa Penida with a medium budget.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-001-2,utrip-rd-001,2,Top Sightseeing Spot,activity,TBD,0,0,"Covered Seminyak, Ubud, and Nusa Penida with a medium budget.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-001-3,utrip-rd-001,3,Popular Food Stop,food,TBD,0,0,"Covered Seminyak, Ubud, and Nusa Penida with a medium budget.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-002-1,utrip-rd-002,1,Arrival + Local Check-in,transport,TBD,0,0,Budget-focused route with local food stops and sunset points.,1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-002-2,utrip-rd-002,2,Top Sightseeing Spot,activity,TBD,0,0,Budget-focused route with local food stops and sunset points.,1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-002-3,utrip-rd-002,3,Popular Food Stop,food,TBD,0,0,Budget-focused route with local food stops and sunset points.,1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-003-1,utrip-rd-003,1,Arrival + Local Check-in,transport,TBD,0,0,"Compared wifi quality, cafes, and average monthly spend.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-003-2,utrip-rd-003,2,Top Sightseeing Spot,activity,TBD,0,0,"Compared wifi quality, cafes, and average monthly spend.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-003-3,utrip-rd-003,3,Popular Food Stop,food,TBD,0,0,"Compared wifi quality, cafes, and average monthly spend.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-004-1,utrip-rd-004,1,Arrival + Local Check-in,transport,TBD,0,0,"Hostel recommendations, short hikes, and packing tips.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-004-2,utrip-rd-004,2,Top Sightseeing Spot,activity,TBD,0,0,"Hostel recommendations, short hikes, and packing tips.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-004-3,utrip-rd-004,3,Popular Food Stop,food,TBD,0,0,"Hostel recommendations, short hikes, and packing tips.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-005-1,utrip-rd-005,1,Arrival + Local Check-in,transport,TBD,0,0,"Detailed cost breakdown for transport, stay, and food.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-005-2,utrip-rd-005,2,Top Sightseeing Spot,activity,TBD,0,0,"Detailed cost breakdown for transport, stay, and food.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z
+tseg-rd-005-3,utrip-rd-005,3,Popular Food Stop,food,TBD,0,0,"Detailed cost breakdown for transport, stay, and food.",1,2026-04-20T08:12:21Z,2026-04-20T08:12:21Z

@@ -2,10 +2,11 @@ package itinerary
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // SetupRoutes sets up all API and web routes
-func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService *AuthService) *gin.Engine {
+func SetupRoutes(service *Service, logger *common.Logger, metrics *Metrics, authService *AuthService) *gin.Engine {
 	router := gin.New()
 
 	// Create metrics middleware

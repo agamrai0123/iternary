@@ -1,0 +1,61 @@
+{
+  "source": "fallback",
+  "generated_at": "2026-04-20T08:12:21Z",
+  "subreddits": [
+    "travel",
+    "solotravel",
+    "backpacking"
+  ],
+  "counts": {
+    "user_trips": 5,
+    "trip_segments": 15,
+    "user_trip_posts": 5
+  },
+  "sample_posts": [
+    {
+      "id": "fallback-001",
+      "subreddit": "travel",
+      "title": "First time in Bali: 6-day trip report and costs",
+      "body": "Covered Seminyak, Ubud, and Nusa Penida with a medium budget.",
+      "score": 750,
+      "url": "",
+      "created_utc": 0
+    },
+    {
+      "id": "fallback-002",
+      "subreddit": "solotravel",
+      "title": "Goa in 5 days - beaches, food, and scooter routes",
+      "body": "Budget-focused route with local food stops and sunset points.",
+      "score": 630,
+      "url": "",
+      "created_utc": 0
+    },
+    {
+      "id": "fallback-003",
+      "subreddit": "backpacking",
+      "title": "Manali backpacking itinerary for beginners",
+      "body": "Hostel recommendations, short hikes, and packing tips.",
+      "score": 420,
+      "url": "",
+      "created_utc": 0
+    },
+    {
+      "id": "fallback-004",
+      "subreddit": "travel",
+      "title": "Bali vs Goa for remote work travelers",
+      "body": "Compared wifi quality, cafes, and average monthly spend.",
+      "score": 530,
+      "url": "",
+      "created_utc": 0
+    },
+    {
+      "id": "fallback-005",
+      "subreddit": "solotravel",
+      "title": "How expensive is a one-week trip to Goa now?",
+      "body": "Detailed cost breakdown for transport, stay, and food.",
+      "score": 310,
+      "url": "",
+      "created_utc": 0
+    }
+  ]
+}

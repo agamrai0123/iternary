@@ -6,15 +6,16 @@ import (
 
 // User represents a user in the system
 type AuthUser struct {
-	ID        string    `json:"id"`
-	Username  string    `json:"username" binding:"required,min=3,max=50"`
-	Email     string    `json:"email" binding:"required,email"`
-	Password  string    `json:"password,omitempty" binding:"required,min=6"`
-	FullName  string    `json:"full_name"`
-	Bio       string    `json:"bio"`
-	Avatar    string    `json:"avatar"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           string    `json:"id"`
+	Username     string    `json:"username" binding:"required,min=3,max=50"`
+	Email        string    `json:"email" binding:"required,email"`
+	Password     string    `json:"password,omitempty" binding:"required,min=6"`
+	PasswordHash string    `json:"-"` // Not exposed in JSON
+	FullName     string    `json:"full_name"`
+	Bio          string    `json:"bio"`
+	Avatar       string    `json:"avatar"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 // Session represents a user session
