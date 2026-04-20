@@ -35,29 +35,23 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	defer func() {}()  // db.Close() - DISABLED - Close method not available
 	logger.Info("Database connection successful")
 
 	// Initialize service
-	// svc := itinerary.NewService(db, logger)  // DISABLED - NewService is not defined
+	svc := itinerary.NewService(db, logger)
+	logger.Info("Service initialized")
 
 	// Initialize auth service
-	// authService := itinerary.NewAuthService(db, logger)  // DISABLED - not used
+	authService := itinerary.NewAuthService(db, logger)
+	logger.Info("Auth service initialized")
 
-	// Initialize MFA and OAuth components
-	// totpMgr := itinerary.NewTOTPManager("Iternary")  // DISABLED - not used
-	// logger.Info("TOTP manager initialized")
+	// Initialize metrics
+	metrics := itinerary.NewMetrics()
+	logger.Info("Metrics initialized")
 
-	oauthMgr := itinerary.NewOAuthManager()  // DISABLED - not used
-
-	// Register OAuth providers from environment variables
-	// oauthMgr.RegisterOAuthProviders() - DISABLED - method not available
-	// Just use basic initialization
-
-	// Initialize router with MFA and OAuth managers
-	// router := itinerary.SetupRoutes(svc, logger, metrics, authService, totpMgr, oauthMgr)  // DISABLED - SetupRoutes is not defined
-	// Use groups routes instead
-	router := gin.New()
+	// Initialize router with all services
+	router := itinerary.SetupRoutes(svc, logger, metrics, authService)
+	logger.Info("Routes configured")
 
 	// Run server
 	port := config.Server.Port

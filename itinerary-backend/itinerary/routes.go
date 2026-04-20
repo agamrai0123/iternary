@@ -34,61 +34,44 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	handlers := NewHandlers(service, logger, metrics)
 	authHandlers := NewAuthHandlers(service, authService, logger, metrics)
 
-	// ==================== Web Routes (HTML Pages) ====================
-	// Auth pages (no authentication required)
-	router.GET("/login", handlers.LoginPage)
-	router.GET("/", handlers.LoginPage) // Redirect home to login
-
-	// Protected pages (require authentication)
-	router.GET("/dashboard", authMiddleware.RequireAuth(), handlers.Dashboard)
-	router.GET("/plan-trip", authMiddleware.RequireAuth(), handlers.PlanTripPage)
-	router.GET("/my-trips", authMiddleware.RequireAuth(), handlers.MyTripsPage)
-	router.GET("/my-trips/:id", authMiddleware.RequireAuth(), handlers.MyTripDetail)
-	router.GET("/community", authMiddleware.OptionalAuth(), handlers.CommunityPage)
-
-	// Legacy pages (kept for backward compatibility)
-	router.GET("/destination/:id", handlers.DestinationDetail)
-	router.GET("/itinerary/:id", handlers.ItineraryDetail)
-	router.GET("/create", handlers.CreateItineraryPage)
-	router.POST("/create", handlers.CreateItinerarySubmit)
-	router.GET("/search", handlers.SearchPage)
-
 	// ==================== API Routes (JSON) ====================
 	// Health & Metrics
 	router.GET("/api/health", metricsMiddleware.HealthCheckEndpoint())
 	router.GET("/api/metrics", metricsMiddleware.MetricsEndpoint())
 
-	// Destination API (no auth required)
-	router.GET("/api/destinations", handlers.GetDestinations)
-
-	// Itinerary API (no auth required)
-	router.GET("/api/destinations/:destinationId/itineraries", handlers.GetItinerariesByDestination)
-	router.GET("/api/itineraries/:itineraryId", handlers.GetItineraryDetail)
-	router.POST("/api/itineraries", handlers.CreateItinerary)
-
-	// Like API (no auth required for MVP)
-	router.POST("/api/itineraries/:itineraryId/like", handlers.LikeItinerary)
-
-	// Comment API (no auth required for MVP)
-	router.POST("/api/itineraries/:itineraryId/comments", handlers.CommentOnItinerary)
-
-	// User Trip API (requires authentication)
-	router.POST("/api/user-trips", authMiddleware.RequireAuth(), handlers.CreateUserTrip)
-	router.GET("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.GetUserTrip)
-	router.PUT("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.UpdateUserTrip)
-	router.DELETE("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.DeleteUserTrip)
-	router.GET("/api/user-trips", authMiddleware.RequireAuth(), handlers.ListUserTrips)
-	router.POST("/api/user-trips/:id/segments", authMiddleware.RequireAuth(), handlers.AddTripSegment)
-	router.POST("/api/trip-segments/:id/photos", authMiddleware.RequireAuth(), handlers.AddTripPhoto)
-	router.POST("/api/trip-segments/:id/review", authMiddleware.RequireAuth(), handlers.AddTripReview)
-	router.POST("/api/user-trips/:id/publish", authMiddleware.RequireAuth(), handlers.PublishUserTrip)
-
 	// ==================== Authentication API Routes ====================
 	// Auth endpoints (no authentication required)
 	router.POST("/auth/login", authHandlers.Login)
-	router.POST("/auth/logout", authHandlers.Logout)
-	router.GET("/auth/profile", authHandlers.GetProfile)
-	router.PUT("/auth/profile", authHandlers.UpdateProfile)
+	router.POST("/auth/register", authHandlers.Register)
+	router.POST("/auth/logout", authMiddleware.RequireAuth(), authHandlers.Logout)
+	router.GET("/auth/profile", authMiddleware.RequireAuth(), authHandlers.GetProfile)
+	router.PUT("/auth/profile", authMiddleware.RequireAuth(), authHandlers.UpdateProfile)
+
+	// ==================== Cities API (no auth required) ====================
+	router.GET("/api/cities", handlers.GetCities)
+	router.GET("/api/cities/:cityId", handlers.GetCityByID)
+
+	// ==================== Trip Posts API (no auth required for viewing) ====================
+	router.GET("/api/trip-posts", handlers.GetTripPosts)
+	router.GET("/api/trip-posts/:postId", handlers.GetTripPostByID)
+	router.GET("/api/cities/:cityId/trip-posts", handlers.GetCityTripPosts)
+	router.POST("/api/trip-posts/:postId/like", handlers.LikeTripPost)
+	router.POST("/api/trip-posts/:postId/save", authMiddleware.RequireAuth(), handlers.SaveTripPost)
+	router.POST("/api/trip-posts/:postId/add-to-itinerary", authMiddleware.RequireAuth(), handlers.AddTripPostToItinerary)
+
+	// ==================== User Trips API (requires authentication) ====================
+	router.POST("/api/user-trips", authMiddleware.RequireAuth(), handlers.CreateUserTrip)
+	router.GET("/api/user-trips", authMiddleware.RequireAuth(), handlers.GetUserTrips)
+	router.GET("/api/user-trips/:tripId", authMiddleware.RequireAuth(), handlers.GetUserTripByID)
+	router.PUT("/api/user-trips/:tripId", authMiddleware.RequireAuth(), handlers.UpdateUserTrip)
+	router.DELETE("/api/user-trips/:tripId", authMiddleware.RequireAuth(), handlers.DeleteUserTrip)
+
+	// ==================== Trip Segments API (requires authentication) ====================
+	router.POST("/api/user-trips/:tripId/segments", authMiddleware.RequireAuth(), handlers.AddTripSegment)
+	router.PUT("/api/user-trips/:tripId/segments/:segmentId", authMiddleware.RequireAuth(), handlers.UpdateTripSegment)
+	router.DELETE("/api/user-trips/:tripId/segments/:segmentId", authMiddleware.RequireAuth(), handlers.DeleteTripSegment)
+	router.POST("/api/user-trips/:tripId/segments/:segmentId/photos", authMiddleware.RequireAuth(), handlers.AddTripPhoto)
+	router.POST("/api/user-trips/:tripId/segments/:segmentId/review", authMiddleware.RequireAuth(), handlers.AddTripReview)
 
 	// ==================== Group Collaboration Routes (Phase A) ====================
 	RegisterGroupRoutes(router, service, authMiddleware, logger)
