@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // ==================== AUTH HANDLERS ====================
@@ -14,12 +15,12 @@ import (
 type AuthHandlers struct {
 	service     *Service
 	authService *AuthService
-	logger      *Logger
+	logger      *common.Logger
 	metrics     *Metrics
 }
 
 // NewAuthHandlers creates a new auth handlers instance
-func NewAuthHandlers(service *Service, authService *AuthService, logger *Logger, metrics *Metrics) *AuthHandlers {
+func NewAuthHandlers(service *Service, authService *AuthService, logger *common.Logger, metrics *Metrics) *AuthHandlers {
 	return &AuthHandlers{
 		service:     service,
 		authService: authService,
@@ -46,17 +47,17 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 	user, err := h.service.GetUserByEmail(req.Email)
 	if err != nil || user == nil {
 		h.logger.Warn("user_not_found", "email", req.Email)
-		h.metrics.RecordAuthFailure()
-		apiErr := NewAuthError("invalid_credentials", "email or password is incorrect")
+		h.metrics.RecordValidationError()
+		apiErr := NewAuthenticationError("invalid email or password")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
 
 	// Verify password
-	if !h.authService.VerifyPassword(req.Password, user.PasswordHash) {
+	if !h.authService.VerifyPassword(user.PasswordHash, req.Password) {
 		h.logger.Warn("invalid_password", "email", req.Email)
-		h.metrics.RecordAuthFailure()
-		apiErr := NewAuthError("invalid_credentials", "email or password is incorrect")
+		h.metrics.RecordValidationError()
+		apiErr := NewAuthenticationError("invalid email or password")
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -65,7 +66,7 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 	session, err := h.authService.CreateSession(user.ID, 24*time.Hour)
 	if err != nil {
 		h.logger.Error("failed_to_create_session", "error", err.Error())
-		apiErr := NewInternalError("session_creation_failed")
+		apiErr := NewInternalServerError("session_creation", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
@@ -73,13 +74,12 @@ func (h *AuthHandlers) Login(c *gin.Context) {
 	// Store session in database
 	if err := h.service.CreateSession(session); err != nil {
 		h.logger.Error("failed_to_store_session", "error", err.Error())
-		apiErr := NewInternalError("session_storage_failed")
+		apiErr := NewInternalServerError("session_storage", err)
 		c.JSON(apiErr.StatusCode, apiErr.ToJSON())
 		return
 	}
 
 	h.logger.Info("user_logged_in", "user_id", user.ID)
-	h.metrics.RecordSuccessfulAuth()
 
 	resp := LoginResponse{
 		Token: session.Token,
