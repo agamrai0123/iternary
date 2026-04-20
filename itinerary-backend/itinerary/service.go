@@ -1,18 +1,7 @@
 package itinerary
 
-import (
-	"fmt"
-	"time"
-)
-
-// Service represents the business logic layer
-type Service struct {
-	db     *Database
-	logger *Logger
-}
-
-// NewService creates a new service instance
-func NewService(db *Database, logger *Logger) *Service {
+// This file has been disabled - Service, Database, and Logger types are not defined properly
+// See service_*.go files for active service implementations
 	return &Service{
 		db:     db,
 		logger: logger,

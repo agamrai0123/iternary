@@ -5,16 +5,17 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // MetricsMiddleware is middleware for recording HTTP metrics
 type MetricsMiddleware struct {
 	metrics *Metrics
-	logger  *Logger
+	logger  *common.Logger
 }
 
 // NewMetricsMiddleware creates a new metrics middleware
-func NewMetricsMiddleware(metrics *Metrics, logger *Logger) *MetricsMiddleware {
+func NewMetricsMiddleware(metrics *Metrics, logger *common.Logger) *MetricsMiddleware {
 	return &MetricsMiddleware{
 		metrics: metrics,
 		logger:  logger,

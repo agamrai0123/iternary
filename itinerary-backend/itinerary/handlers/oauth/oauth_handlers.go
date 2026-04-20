@@ -4,24 +4,24 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/itinerary-backend/itinerary"
+	common "github.com/yourusername/itinerary-backend/itinerary/common"
 	oauthpkg "github.com/yourusername/itinerary-backend/itinerary/auth/oauth"
 )
 
 // Handler handles OAuth-related HTTP requests
 type Handler struct {
-	db       *itinerary.Database
-	logger   *itinerary.Logger
+	db       *common.Database
+	logger   *common.Logger
 	oauthMgr *oauthpkg.OAuthManager
 }
 
 // NewHandler creates a new OAuth handler
-func NewHandler(db *itinerary.Database, logger *itinerary.Logger, oauthMgr *oauthpkg.OAuthManager) *Handler {
-	return &Handler{
-		db:       db,
-		logger:   logger,
-		oauthMgr: oauthMgr,
-	}
+func NewHandler(db *common.Database, logger *common.Logger, oauthMgr *oauthpkg.OAuthManager) *Handler {
+       return &Handler{
+	       db:       db,
+	       logger:   logger,
+	       oauthMgr: oauthMgr,
+       }
 }
 
 // GetAuthURL handles GET /api/v1/oauth/authorize/:provider
@@ -157,7 +157,7 @@ func (h *Handler) LinkAccount(c *gin.Context) {
 	}
 
 	// Get user info
-	userInfo, err := h.oauthMgr.GetUserInfo(provider, token)
+	_, err = h.oauthMgr.GetUserInfo(provider, token)
 	if err != nil {
 		h.logger.Error("failed to get user info", "provider", provider, "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user info"})

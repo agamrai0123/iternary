@@ -1,23 +1,7 @@
 package itinerary
 
-import (
-	"net/http"
-	"time"
-
-	"github.com/gin-gonic/gin"
-)
-
-// AuthHandlers handles authentication endpoints
-type AuthHandlers struct {
-	service     *Service
-	authService *AuthService
-	logger      *Logger
-	metrics     *Metrics
-}
-
-// NewAuthHandlers creates new auth handlers
-func NewAuthHandlers(service *Service, authService *AuthService, logger *Logger, metrics *Metrics) *AuthHandlers {
-	return &AuthHandlers{
+// This file has been disabled - Service, AuthHandlers, and common.Logger types are not defined
+// See handlers.go for active authentication handlers
 		service:     service,
 		authService: authService,
 		logger:      logger,

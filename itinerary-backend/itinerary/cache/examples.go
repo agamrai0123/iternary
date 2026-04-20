@@ -12,8 +12,6 @@ func ExampleMemoryCacheUsage() {
 	cache := NewMemoryCache()
 	defer cache.Close()
 
-	ctx := context.Background()
-
 	// Set values
 	cache.Set("user:1", map[string]string{"name": "Alice", "email": "alice@example.com"}, 5*time.Minute)
 	cache.Set("user:2", map[string]string{"name": "Bob", "email": "bob@example.com"}, 5*time.Minute)

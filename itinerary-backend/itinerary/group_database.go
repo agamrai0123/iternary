@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // ============================================================================
@@ -35,7 +36,7 @@ func (db *Database) CreateGroupTrip(groupTrip *GroupTrip) error {
 }
 
 // GetGroupTrip retrieves a group trip by ID
-func (db *Database) GetGroupTrip(id string) (*GroupTrip, error) {
+func (db *common.Database) GetGroupTrip(id string) (*GroupTrip, error) {
 	query := `
 		SELECT id, title, destination_id, owner_id, budget, duration, start_date, status, created_at, updated_at
 		FROM group_trips
@@ -57,7 +58,7 @@ func (db *Database) GetGroupTrip(id string) (*GroupTrip, error) {
 }
 
 // GetUserGroupTrips retrieves all group trips for a user (as member or owner)
-func (db *Database) GetUserGroupTrips(userID string) ([]*GroupTrip, error) {
+func (db *common.Database) GetUserGroupTrips(userID string) ([]*GroupTrip, error) {
 	query := `
 		SELECT DISTINCT gt.id, gt.title, gt.destination_id, gt.owner_id, gt.budget, gt.duration, gt.start_date, gt.status, gt.created_at, gt.updated_at
 		FROM group_trips gt
@@ -86,7 +87,7 @@ func (db *Database) GetUserGroupTrips(userID string) ([]*GroupTrip, error) {
 }
 
 // UpdateGroupTrip updates a group trip
-func (db *Database) UpdateGroupTrip(id string, updates *UpdateGroupTripRequest) error {
+func (db *common.Database) UpdateGroupTrip(id string, updates *UpdateGroupTripRequest) error {
 	query := `
 		UPDATE group_trips
 		SET title = COALESCE(?, title),
@@ -107,7 +108,7 @@ func (db *Database) UpdateGroupTrip(id string, updates *UpdateGroupTripRequest) 
 }
 
 // DeleteGroupTrip deletes a group trip
-func (db *Database) DeleteGroupTrip(id string) error {
+func (db *common.Database) DeleteGroupTrip(id string) error {
 	query := `DELETE FROM group_trips WHERE id = ?`
 
 	_, err := db.conn.Exec(query, id)
@@ -123,7 +124,7 @@ func (db *Database) DeleteGroupTrip(id string) error {
 // ============================================================================
 
 // AddGroupMember adds a user to a group trip
-func (db *Database) AddGroupMember(groupTripID string, userID string, role string) (*GroupMember, error) {
+func (db *common.Database) AddGroupMember(groupTripID string, userID string, role string) (*GroupMember, error) {
 	id := uuid.New().String()
 	now := time.Now()
 
@@ -148,7 +149,7 @@ func (db *Database) AddGroupMember(groupTripID string, userID string, role strin
 }
 
 // GetGroupMembers retrieves all members of a group trip
-func (db *Database) GetGroupMembers(groupTripID string) ([]*GroupMember, error) {
+func (db *common.Database) GetGroupMembers(groupTripID string) ([]*GroupMember, error) {
 	query := `
 		SELECT id, group_trip_id, user_id, role, joined_at, status
 		FROM group_members
@@ -176,7 +177,7 @@ func (db *Database) GetGroupMembers(groupTripID string) ([]*GroupMember, error) 
 }
 
 // GetGroupMember retrieves a specific group member
-func (db *Database) GetGroupMember(groupTripID string, userID string) (*GroupMember, error) {
+func (db *common.Database) GetGroupMember(groupTripID string, userID string) (*GroupMember, error) {
 	query := `
 		SELECT id, group_trip_id, user_id, role, joined_at, status
 		FROM group_members
@@ -198,7 +199,7 @@ func (db *Database) GetGroupMember(groupTripID string, userID string) (*GroupMem
 }
 
 // UpdateGroupMemberRole updates a member's role
-func (db *Database) UpdateGroupMemberRole(id string, role string) error {
+func (db *common.Database) UpdateGroupMemberRole(id string, role string) error {
 	query := `UPDATE group_members SET role = ? WHERE id = ?`
 
 	_, err := db.conn.Exec(query, role, id)
@@ -210,7 +211,7 @@ func (db *Database) UpdateGroupMemberRole(id string, role string) error {
 }
 
 // UpdateGroupMemberStatus updates a member's status (accept/decline/leave)
-func (db *Database) UpdateGroupMemberStatus(id string, status string) error {
+func (db *common.Database) UpdateGroupMemberStatus(id string, status string) error {
 	query := `UPDATE group_members SET status = ? WHERE id = ?`
 
 	_, err := db.conn.Exec(query, status, id)
@@ -222,7 +223,7 @@ func (db *Database) UpdateGroupMemberStatus(id string, status string) error {
 }
 
 // RemoveGroupMember removes a user from a group trip
-func (db *Database) RemoveGroupMember(groupTripID string, userID string) error {
+func (db *common.Database) RemoveGroupMember(groupTripID string, userID string) error {
 	query := `DELETE FROM group_members WHERE group_trip_id = ? AND user_id = ?`
 
 	_, err := db.conn.Exec(query, groupTripID, userID)
@@ -238,7 +239,7 @@ func (db *Database) RemoveGroupMember(groupTripID string, userID string) error {
 // ============================================================================
 
 // CreateExpense creates a new expense
-func (db *Database) CreateExpense(expense *Expense) error {
+func (db *common.Database) CreateExpense(expense *Expense) error {
 	id := uuid.New().String()
 	now := time.Now()
 
@@ -265,7 +266,7 @@ func (db *Database) CreateExpense(expense *Expense) error {
 }
 
 // GetExpense retrieves an expense by ID
-func (db *Database) GetExpense(id string) (*Expense, error) {
+func (db *common.Database) GetExpense(id string) (*Expense, error) {
 	query := `
 		SELECT id, group_trip_id, description, amount, paid_by, category, paid_date, status, created_at
 		FROM expenses
@@ -287,7 +288,7 @@ func (db *Database) GetExpense(id string) (*Expense, error) {
 }
 
 // GetGroupExpenses retrieves all expenses for a group trip
-func (db *Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
+func (db *common.Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
 	query := `
 		SELECT id, group_trip_id, description, amount, paid_by, category, paid_date, status, created_at
 		FROM expenses
@@ -315,7 +316,7 @@ func (db *Database) GetGroupExpenses(groupTripID string) ([]*Expense, error) {
 }
 
 // UpdateExpenseStatus marks an expense as settled or pending
-func (db *Database) UpdateExpenseStatus(id string, status string) error {
+func (db *common.Database) UpdateExpenseStatus(id string, status string) error {
 	query := `UPDATE expenses SET status = ? WHERE id = ?`
 
 	_, err := db.conn.Exec(query, status, id)
@@ -331,7 +332,7 @@ func (db *Database) UpdateExpenseStatus(id string, status string) error {
 // ============================================================================
 
 // CreateExpenseSplit creates a split record for an expense
-func (db *Database) CreateExpenseSplit(split *ExpenseSplit) error {
+func (db *common.Database) CreateExpenseSplit(split *ExpenseSplit) error {
 	id := uuid.New().String()
 
 	query := `
@@ -349,7 +350,7 @@ func (db *Database) CreateExpenseSplit(split *ExpenseSplit) error {
 }
 
 // GetExpenseSplits retrieves all splits for an expense
-func (db *Database) GetExpenseSplits(expenseID string) ([]*ExpenseSplit, error) {
+func (db *common.Database) GetExpenseSplits(expenseID string) ([]*ExpenseSplit, error) {
 	query := `
 		SELECT id, expense_id, user_id, amount_owed
 		FROM expense_splits
@@ -376,7 +377,7 @@ func (db *Database) GetExpenseSplits(expenseID string) ([]*ExpenseSplit, error) 
 }
 
 // GetUserExpensesByTrip retrieves how much a user paid and owes in a group trip
-func (db *Database) GetUserExpensesByTrip(groupTripID string, userID string) (paidAmount float64, owedAmount float64, err error) {
+func (db *common.Database) GetUserExpensesByTrip(groupTripID string, userID string) (paidAmount float64, owedAmount float64, err error) {
 	// Get amount paid by user
 	paidQuery := `
 		SELECT COALESCE(SUM(amount), 0)
@@ -412,7 +413,7 @@ func (db *Database) GetUserExpensesByTrip(groupTripID string, userID string) (pa
 // ============================================================================
 
 // CreatePoll creates a new poll
-func (db *Database) CreatePoll(poll *Poll) error {
+func (db *common.Database) CreatePoll(poll *Poll) error {
 	id := uuid.New().String()
 	now := time.Now()
 
@@ -434,7 +435,7 @@ func (db *Database) CreatePoll(poll *Poll) error {
 }
 
 // GetPoll retrieves a poll by ID
-func (db *Database) GetPoll(id string) (*Poll, error) {
+func (db *common.Database) GetPoll(id string) (*Poll, error) {
 	query := `
 		SELECT id, group_trip_id, created_by, question, poll_type, status, expires_at, created_at
 		FROM polls
@@ -456,7 +457,7 @@ func (db *Database) GetPoll(id string) (*Poll, error) {
 }
 
 // GetGroupPolls retrieves all polls for a group trip
-func (db *Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
+func (db *common.Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
 	query := `
 		SELECT id, group_trip_id, created_by, question, poll_type, status, expires_at, created_at
 		FROM polls
@@ -484,7 +485,7 @@ func (db *Database) GetGroupPolls(groupTripID string) ([]*Poll, error) {
 }
 
 // UpdatePollStatus updates a poll's status (active -> locked -> resolved)
-func (db *Database) UpdatePollStatus(id string, status string) error {
+func (db *common.Database) UpdatePollStatus(id string, status string) error {
 	query := `UPDATE polls SET status = ? WHERE id = ?`
 
 	_, err := db.conn.Exec(query, status, id)
@@ -500,7 +501,7 @@ func (db *Database) UpdatePollStatus(id string, status string) error {
 // ============================================================================
 
 // CreatePollOption creates a poll option
-func (db *Database) CreatePollOption(pollID string, optionText string, sequence int) (*PollOption, error) {
+func (db *common.Database) CreatePollOption(pollID string, optionText string, sequence int) (*PollOption, error) {
 	id := uuid.New().String()
 
 	query := `
@@ -523,7 +524,7 @@ func (db *Database) CreatePollOption(pollID string, optionText string, sequence 
 }
 
 // GetPollOptions retrieves all options for a poll
-func (db *Database) GetPollOptions(pollID string) ([]*PollOption, error) {
+func (db *common.Database) GetPollOptions(pollID string) ([]*PollOption, error) {
 	query := `
 		SELECT id, poll_id, option_text, vote_count, sequence
 		FROM poll_options
@@ -555,7 +556,7 @@ func (db *Database) GetPollOptions(pollID string) ([]*PollOption, error) {
 // ============================================================================
 
 // CreatePollVote records a vote on a poll option
-func (db *Database) CreatePollVote(optionID string, userID string) error {
+func (db *common.Database) CreatePollVote(optionID string, userID string) error {
 	id := uuid.New().String()
 	now := time.Now()
 
@@ -580,7 +581,7 @@ func (db *Database) CreatePollVote(optionID string, userID string) error {
 }
 
 // GetUserPollVote checks if user already voted on this poll
-func (db *Database) GetUserPollVote(pollID string, userID string) (*PollVote, error) {
+func (db *common.Database) GetUserPollVote(pollID string, userID string) (*PollVote, error) {
 	query := `
 		SELECT pv.id, pv.poll_option_id, pv.user_id, pv.voted_at
 		FROM poll_votes pv
@@ -608,7 +609,7 @@ func (db *Database) GetUserPollVote(pollID string, userID string) (*PollVote, er
 // ============================================================================
 
 // CreateSettlement creates a settlement record
-func (db *Database) CreateSettlement(groupTripID string, debtorID string, creditorID string, amount float64) (*Settlement, error) {
+func (db *common.Database) CreateSettlement(groupTripID string, debtorID string, creditorID string, amount float64) (*Settlement, error) {
 	id := uuid.New().String()
 	now := time.Now()
 
@@ -634,7 +635,7 @@ func (db *Database) CreateSettlement(groupTripID string, debtorID string, credit
 }
 
 // GetSettlements retrieves all settlements for a group trip
-func (db *Database) GetSettlements(groupTripID string) ([]*Settlement, error) {
+func (db *common.Database) GetSettlements(groupTripID string) ([]*Settlement, error) {
 	query := `
 		SELECT id, group_trip_id, debtor_id, creditor_id, amount, status, settled_at, created_at
 		FROM settlements
@@ -662,7 +663,7 @@ func (db *Database) GetSettlements(groupTripID string) ([]*Settlement, error) {
 }
 
 // MarkSettlementSettled marks a settlement as settled
-func (db *Database) MarkSettlementSettled(id string) error {
+func (db *common.Database) MarkSettlementSettled(id string) error {
 	now := time.Now()
 	query := `UPDATE settlements SET status = ?, settled_at = ? WHERE id = ?`
 

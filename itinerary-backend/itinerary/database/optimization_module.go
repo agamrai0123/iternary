@@ -12,15 +12,15 @@ type QueryOptimizationModule struct {
 	DB        *sql.DB
 	Indexes   *IndexManager
 	Pool      *PoolManager
-	Profiler  *query.QueryProfiler
-	Optimizer *query.QueryOptimizer
-	Builder   *query.OptimizedQueryBuilder
+	Profiler  *QueryProfiler
+	Optimizer *QueryOptimizer
+	Builder   *OptimizedQueryBuilder
 }
 
 // NewQueryOptimizationModule creates a new query optimization module
 func NewQueryOptimizationModule(db *sql.DB) *QueryOptimizationModule {
-	profiler := query.NewQueryProfiler(db, 100*time.Millisecond)
-	optimizer := query.NewQueryOptimizer(db, profiler)
+	profiler := NewQueryProfiler(db, 100*time.Millisecond)
+	optimizer := NewQueryOptimizer(db, profiler)
 
 	return &QueryOptimizationModule{
 		DB:        db,
@@ -28,7 +28,7 @@ func NewQueryOptimizationModule(db *sql.DB) *QueryOptimizationModule {
 		Pool:      NewPoolManager(db),
 		Profiler:  profiler,
 		Optimizer: optimizer,
-		Builder:   query.NewOptimizedQueryBuilder(db),
+		Builder:   NewOptimizedQueryBuilder(db),
 	}
 }
 

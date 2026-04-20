@@ -4,16 +4,17 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // AuthMiddleware provides authentication middleware for protected routes
 type AuthMiddleware struct {
 	authService *AuthService
-	logger      *Logger
+	logger      *common.Logger
 }
 
 // NewAuthMiddleware creates a new auth middleware
-func NewAuthMiddleware(authService *AuthService, logger *Logger) *AuthMiddleware {
+func NewAuthMiddleware(authService *AuthService, logger *common.Logger) *AuthMiddleware {
 	return &AuthMiddleware{
 		authService: authService,
 		logger:      logger,

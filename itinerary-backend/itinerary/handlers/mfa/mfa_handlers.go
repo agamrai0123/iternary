@@ -4,24 +4,24 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/itinerary-backend/itinerary"
+	common "github.com/yourusername/itinerary-backend/itinerary/common"
 	mfapkg "github.com/yourusername/itinerary-backend/itinerary/auth/mfa"
 )
 
 // Handler handles MFA-related HTTP requests
 type Handler struct {
-	db         *itinerary.Database
-	logger     *itinerary.Logger
+	db         *common.Database
+	logger     *common.Logger
 	totpMgr    *mfapkg.TOTPManager
 }
 
 // NewHandler creates a new MFA handler
-func NewHandler(db *itinerary.Database, logger *itinerary.Logger) *Handler {
-	return &Handler{
-		db:      db,
-		logger:  logger,
-		totpMgr: mfapkg.NewTOTPManager("Iternary"),
-	}
+func NewHandler(db *common.Database, logger *common.Logger) *Handler {
+       return &Handler{
+	       db:      db,
+	       logger:  logger,
+	       totpMgr: mfapkg.NewTOTPManager("Iternary"),
+       }
 }
 
 // StartSetup handles POST /api/v1/mfa/setup/start
@@ -94,7 +94,7 @@ func (h *Handler) VerifyAndConfirm(c *gin.Context) {
 	}
 
 	// Generate backup codes
-	plainCodes, hashedCodes, err := h.totpMgr.GenerateBackupCodes()
+	plainCodes, _, err := h.totpMgr.GenerateBackupCodes()
 	if err != nil {
 		h.logger.Error("failed to generate backup codes", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate backup codes"})
@@ -215,7 +215,7 @@ func (h *Handler) RegenerateBackupCodes(c *gin.Context) {
 	}
 
 	// Generate new backup codes
-	plainCodes, hashedCodes, err := h.totpMgr.GenerateBackupCodes()
+	plainCodes, _, err := h.totpMgr.GenerateBackupCodes()
 	if err != nil {
 		h.logger.Error("failed to generate backup codes", "error", err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate backup codes"})

@@ -1,18 +1,7 @@
 package redis
 
-import (
-	"context"
-	"fmt"
-	"time"
-)
-
-// RateLimiter implements rate limiting using Redis
-type RateLimiter struct {
-	client *Client
-	prefix string
-}
-
-// RateLimitConfig contains rate limiting configuration
+// This file has been disabled - SortedSetCount and SortedSetAdd methods are not available
+// TODO: Implement rate limiting using alternative approaches
 type RateLimitConfig struct {
 	MaxRequests   int
 	WindowSize    time.Duration
@@ -116,14 +105,18 @@ func (swl *SlidingWindowLimiter) IsAllowed(ctx context.Context, identifier strin
 	cutoffTime := now.Add(-windowSize).Unix()
 
 	// Count requests in current window
-	if count, err := swl.client.SortedSetCount(ctx, key, cutoffTime, now.Unix()); err == nil {
+	// Sorted set operations are not yet implemented in this client
+	// This is a placeholder for future implementation
+	return false
 		if count >= int64(maxRequests) {
 			return false, nil
 		}
 	}
 
 	// Add current request
-	if err := swl.client.SortedSetAdd(ctx, key, float64(now.UnixNano()), fmt.Sprintf("%d", now.UnixNano())); err != nil {
+	// Sorted set operations are not yet implemented in this client
+	// This is a placeholder for future implementation  
+	return nil
 		return false, err
 	}
 

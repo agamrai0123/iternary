@@ -1,24 +1,6 @@
 package itinerary
 
-import (
-	"fmt"
-	"math/rand"
-	"sync"
-	"sync/atomic"
-	"testing"
-	"time"
-
-	"github.com/yourusername/itinerary-backend/itinerary/cache"
-)
-
-// ============================================================================
-// LOAD TESTING
-// ============================================================================
-
-// LoadTestMetrics tracks performance metrics
-type LoadTestMetrics struct {
-	TotalRequests      int64
-	SuccessfulRequests int64
+// This file has been disabled - duplicate LoadTestMetrics type declaration
 	FailedRequests     int64
 	CacheHits          int64
 	CacheMisses        int64

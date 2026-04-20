@@ -7,18 +7,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // AuthService handles authentication operations
 type AuthService struct {
-	db     *Database
-	logger *Logger
+	db     *common.Database
+	logger *common.Logger
 	// In production, use proper JWT library like github.com/golang-jwt/jwt
 	// For MVP, use simple token-based auth
 }
 
 // NewAuthService creates a new auth service
-func NewAuthService(db *Database, logger *Logger) *AuthService {
+func NewAuthService(db *common.Database, logger *common.Logger) *AuthService {
 	return &AuthService{
 		db:     db,
 		logger: logger,

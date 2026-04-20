@@ -34,7 +34,7 @@ func ExampleProfileQueryExecution(db *sql.DB) error {
 	ctx := context.Background()
 
 	// Create profiler
-	profiler := query.NewQueryProfiler(db, 100*time.Millisecond)
+	profiler := NewQueryProfiler(db, 100*time.Millisecond)
 
 	// Profile a query
 	profile, err := profiler.ProfileQuery(ctx,
@@ -116,7 +116,7 @@ func ExampleConfigureConnectionPool(db *sql.DB) {
 // ExampleBatchInsert demonstrates efficient batch operations
 func ExampleBatchInsert(db *sql.DB) error {
 	ctx := context.Background()
-	builder := query.NewOptimizedQueryBuilder(db)
+	builder := NewOptimizedQueryBuilder(db)
 
 	// Prepare batch data
 	values := [][]interface{}{
@@ -141,7 +141,7 @@ func ExampleBatchInsert(db *sql.DB) error {
 // ExamplePaginatedQuery demonstrates pagination
 func ExamplePaginatedQuery(db *sql.DB) error {
 	ctx := context.Background()
-	builder := query.NewOptimizedQueryBuilder(db)
+	builder := NewOptimizedQueryBuilder(db)
 
 	// Get page 2 with 20 items per page
 	rows, err := builder.PaginatedQuery(ctx,
@@ -171,8 +171,8 @@ func ExamplePaginatedQuery(db *sql.DB) error {
 func ExampleAnalyzeSlowQueries(db *sql.DB) error {
 	ctx := context.Background()
 
-	profiler := query.NewQueryProfiler(db, 50*time.Millisecond)
-	optimizer := query.NewQueryOptimizer(db, profiler)
+	profiler := NewQueryProfiler(db, 50*time.Millisecond)
+	optimizer := NewQueryOptimizer(db, profiler)
 
 	// Run some queries to profile
 	for i := 0; i < 100; i++ {
@@ -192,7 +192,7 @@ func ExampleAnalyzeSlowQueries(db *sql.DB) error {
 
 // ExampleQueryOptimizationPatterns demonstrates query optimization patterns
 func ExampleQueryOptimizationPatterns() {
-	patterns := query.CommonPatterns()
+	patterns := CommonPatterns()
 
 	fmt.Println("Common Query Optimization Patterns:\n")
 	for i, pattern := range patterns {
@@ -207,7 +207,7 @@ func ExampleQueryOptimizationPatterns() {
 func ExampleAnalyzeQueryPattern() {
 	// Analyze a BAD query
 	badQuery := "SELECT * FROM users WHERE LOWER(name) LIKE '%john%'"
-	recs := query.AnalyzeQueryPattern(badQuery)
+	recs := AnalyzeQueryPattern(badQuery)
 
 	fmt.Println("Query Analysis for: " + badQuery)
 	fmt.Println("\nHigh Priority Issues:")
@@ -307,10 +307,10 @@ func ExampleMultiTierOptimization(db *sql.DB) error {
 	indexMgr.InitializeOptimalIndexes(ctx)
 
 	// 3. Profile queries
-	profiler := query.NewQueryProfiler(db, 100*time.Millisecond)
+	profiler := NewQueryProfiler(db, 100*time.Millisecond)
 
 	// 4. Build optimized queries
-	builder := query.NewOptimizedQueryBuilder(db)
+	builder := NewOptimizedQueryBuilder(db)
 
 	// Execute with all optimizations
 	rows, err := builder.PaginatedQuery(ctx,
@@ -361,7 +361,7 @@ func ExampleIndexOptimization(db *sql.DB) error {
 // ExampleQueryPlanAnalysis demonstrates query plan analysis
 func ExampleQueryPlanAnalysis(db *sql.DB) error {
 	ctx := context.Background()
-	profiler := query.NewQueryProfiler(db, 100*time.Millisecond)
+	profiler := NewQueryProfiler(db, 100*time.Millisecond)
 
 	query := "SELECT * FROM users WHERE email = $1"
 

@@ -77,10 +77,7 @@ func (tm *TOTPManager) GetQRCode(userEmail, secret string) (string, error) {
 	}
 
 	// Convert to PNG and create data URI
-	img, err := qrImage.Image(300)
-	if err != nil {
-		return "", fmt.Errorf("failed to create QR image: %w", err)
-	}
+	img := qrImage.Image(300)
 
 	// Convert image to base64 data URI
 	buf := new(strings.Builder)

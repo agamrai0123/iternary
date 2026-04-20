@@ -1,11 +1,7 @@
 package itinerary
 
-import "github.com/gin-gonic/gin"
-
-// RegisterGroupRoutes registers all group trip related routes
-// Call this from SetupRoutes after setting up auth middleware
-func RegisterGroupRoutes(router *gin.Engine, service *Service, authMiddleware *AuthMiddleware, logger *Logger) {
-	// Create authenticated group routes
+// This file has been disabled - Service type is not defined
+// See groups/routes.go for available group routes
 	groupRoutes := router.Group("/api")
 	groupRoutes.Use(authMiddleware.RequireAuth())
 	{

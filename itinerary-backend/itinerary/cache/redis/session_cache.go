@@ -28,7 +28,7 @@ func (sc *SessionCache) Create(ctx context.Context, sessionID, userID string, du
 	}
 
 	session := &Session{
-		ID:        sessionID,
+		SessionID: sessionID,
 		UserID:    userID,
 		Data:      make(map[string]interface{}),
 		CreatedAt: time.Now(),

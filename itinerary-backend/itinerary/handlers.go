@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
 // PageData represents common page data for templates
@@ -17,12 +18,12 @@ type PageData struct {
 // Handlers represents HTTP request handlers
 type Handlers struct {
 	service *Service
-	logger  *Logger
+	logger  *common.Logger
 	metrics *Metrics
 }
 
 // NewHandlers creates new handlers
-func NewHandlers(service *Service, logger *Logger, metrics *Metrics) *Handlers {
+func NewHandlers(service *Service, logger *common.Logger, metrics *Metrics) *Handlers {
 	return &Handlers{
 		service: service,
 		logger:  logger,

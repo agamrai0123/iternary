@@ -107,20 +107,23 @@ type UserTrip struct {
 
 // TripSegment represents a place/activity in a user trip
 type TripSegment struct {
-	ID         string        `json:"id"`
-	UserTripID string        `json:"user_trip_id" binding:"required"`
-	Day        int           `json:"day" binding:"required,min=1"`
-	Name       string        `json:"name" binding:"required"`
-	Type       string        `json:"type"` // stay, food, activity, transport, other
-	Location   string        `json:"location"`
-	Latitude   float64       `json:"latitude"`  // For Google Maps
-	Longitude  float64       `json:"longitude"` // For Google Maps
-	Notes      string        `json:"notes"`
-	Photos     []TripPhoto   `json:"photos"`
-	Review     *TripReview   `json:"review"`
-	Completed  bool          `json:"completed"`
-	CreatedAt  time.Time     `json:"created_at"`
-	UpdatedAt  time.Time     `json:"updated_at"`
+	ID              string        `json:"id"`
+	UserTripID      string        `json:"user_trip_id" binding:"required"`
+	Day             int           `json:"day" binding:"required,min=1"`
+	TimeOfDay       string        `json:"time_of_day"` // morning, afternoon, evening, night
+	Name            string        `json:"name" binding:"required"`
+	Type            string        `json:"type"` // stay, food, activity, transport, other
+	Location        string        `json:"location"`
+	Latitude        float64       `json:"latitude"`  // For Google Maps
+	Longitude       float64       `json:"longitude"` // For Google Maps
+	Expense         float64       `json:"expense" binding:"gte=0"` // Cost of the place/activity
+	BestTimeToVisit string        `json:"best_time_to_visit"` // e.g., "Spring", "Morning", "Peak hours 10am-12pm"
+	Notes           string        `json:"notes"`
+	Photos          []TripPhoto   `json:"photos"`
+	Review          *TripReview   `json:"review"`
+	Completed       bool          `json:"completed"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
 
 // TripPhoto represents a photo for a trip segment
@@ -144,16 +147,87 @@ type TripReview struct {
 
 // UserTripPost represents a published trip post in the community
 type UserTripPost struct {
-	ID           string    `json:"id"`
-	UserTripID   string    `json:"user_trip_id" binding:"required"`
-	UserID       string    `json:"user_id" binding:"required"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	CoverImage   string    `json:"cover_image"`
-	Likes        int       `json:"likes"`
-	Views        int       `json:"views"`
-	Published    bool      `json:"published"`
-	PublishedAt  *time.Time `json:"published_at"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	ID            string        `json:"id"`
+	UserTripID    string        `json:"user_trip_id" binding:"required"`
+	UserID        string        `json:"user_id" binding:"required"`
+	Title         string        `json:"title"`
+	Description   string        `json:"description"`
+	CoverImage    string        `json:"cover_image"`
+	DestinationID string        `json:"destination_id"` // Which city/destination this trip is about
+	Duration      int           `json:"duration"` // Number of days
+	TotalExpense  float64       `json:"total_expense"` // Total cost of the trip
+	Segments      []TripSegment `json:"segments"` // All places/activities in this trip post
+	Likes         int           `json:"likes"`
+	Views         int           `json:"views"`
+	Published     bool          `json:"published"`
+	PublishedAt   *time.Time    `json:"published_at"`
+	CreatedAt     time.Time     `json:"created_at"`
+	UpdatedAt     time.Time     `json:"updated_at"`
+}
+
+// TripPostResponse is the response format for trip posts in API
+type TripPostResponse struct {
+	ID            string                `json:"id"`
+	UserID        string                `json:"user_id"`
+	Title         string                `json:"title"`
+	Description   string                `json:"description"`
+	CoverImage    string                `json:"cover_image"`
+	DestinationID string                `json:"destination_id"`
+	Duration      int                   `json:"duration"`
+	TotalExpense  float64               `json:"total_expense"`
+	Places        []TripPlaceResponse   `json:"places"` // Renamed from segments for clarity
+	Likes         int                   `json:"likes"`
+	Views         int                   `json:"views"`
+	PublishedAt   *time.Time            `json:"published_at"`
+	CreatedAt     time.Time             `json:"created_at"`
+}
+
+// TripPlaceResponse represents a place in a trip post
+type TripPlaceResponse struct {
+	ID              string              `json:"id"`
+	Day             int                 `json:"day"`
+	TimeOfDay       string              `json:"time_of_day"`
+	Name            string              `json:"name"`
+	Type            string              `json:"type"`
+	Location        string              `json:"location"`
+	Latitude        float64             `json:"latitude"`
+	Longitude       float64             `json:"longitude"`
+	Expense         float64             `json:"expense"`
+	BestTimeToVisit string              `json:"best_time_to_visit"`
+	Photos          []TripPhoto         `json:"photos"`
+	Review          *TripReviewResponse `json:"review"`
+}
+
+// TripReviewResponse represents a review in a trip post
+type TripReviewResponse struct {
+	Rating float64 `json:"rating"`
+	Review string  `json:"review"`
+}
+
+// ==================== API Request/Response Types ====================
+
+// AddTripPostToItineraryRequest requests adding a shared trip post to user's itinerary
+type AddTripPostToItineraryRequest struct {
+	TripPostID string `json:"trip_post_id" binding:"required"`
+}
+
+// MarkSegmentVisitedRequest requests marking a trip segment as visited
+type MarkSegmentVisitedRequest struct {
+	Completed bool `json:"completed" binding:"required"`
+}
+
+// SubmitReviewRequest represents a review submission for a visited place
+type SubmitReviewRequest struct {
+	SegmentID string  `json:"segment_id" binding:"required"`
+	Rating    float64 `json:"rating" binding:"required,min=1,max=5"`
+	Review    string  `json:"review" binding:"required"`
+}
+
+// ListCitiesResponse represents the response for listing cities/destinations
+type ListCitiesResponse struct {
+	Data       []Destination `json:"data"`
+	Total      int           `json:"total"`
+	Page       int           `json:"page"`
+	PageSize   int           `json:"page_size"`
+	TotalPages int           `json:"total_pages"`
 }

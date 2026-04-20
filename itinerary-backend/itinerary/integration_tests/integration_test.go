@@ -449,7 +449,7 @@ func TestConcurrentCacheAccess_MAIN_DISABLED(t *testing.T) {
 				cacheManager.Delete(key)
 
 				// Verify deletion
-				if _, found := cacheManager.Get(key); found {
+				if _, err := cacheManager.Get(key); err == nil {
 					errorsChan <- fmt.Errorf("goroutine %d: key %s still exists after deletion", goroutineID, key)
 				}
 			}

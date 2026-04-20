@@ -6,15 +6,13 @@ import (
 	"time"
 
 	_ "modernc.org/sqlite"
+	"github.com/yourusername/itinerary-backend/itinerary/common"
 )
 
-// Database represents the database connection
-type Database struct {
-	conn *sql.DB
-}
+// (Moved Database struct to common package)
 
 // NewDatabase creates a new SQLite database connection
-func NewDatabase(config *Config, logger *Logger) (*Database, error) {
+func NewDatabase(config *Config, logger *common.Logger) (*common.Database, error) {
 	// SQLite connection - uses file-based database
 	dbPath := "itinerary.db"
 
@@ -51,11 +49,11 @@ func NewDatabase(config *Config, logger *Logger) (*Database, error) {
 		return nil, fmt.Errorf("failed to insert test data: %w", err)
 	}
 
-	return &Database{conn: db}, nil
+       return &common.Database{Conn: db}, nil
 }
 
 // initializeSchema creates all tables if they don't exist
-func initializeSchema(db *sql.DB, logger *Logger) error {
+func initializeSchema(db *sql.DB, logger *common.Logger) error {
 	logger.Debug("initializing database schema")
 	schema := `
 	-- Users table
@@ -268,7 +266,7 @@ func initializeSchema(db *sql.DB, logger *Logger) error {
 }
 
 // insertTestData inserts test data if tables are empty
-func insertTestData(db *sql.DB, logger *Logger) error {
+func insertTestData(db *sql.DB, logger *common.Logger) error {
 	logger.Debug("inserting test data into database")
 	// Check if users already exist
 	var count int
@@ -384,12 +382,12 @@ func insertTestData(db *sql.DB, logger *Logger) error {
 }
 
 // Close closes the database connection
-func (d *Database) Close() error {
+func (d *common.Database) Close() error {
 	return d.conn.Close()
 }
 
 // GetDestinations retrieves all destinations with pagination
-func (d *Database) GetDestinations(page, pageSize int) ([]Destination, int, error) {
+func (d *common.Database) GetDestinations(page, pageSize int) ([]Destination, int, error) {
 	offset := (page - 1) * pageSize
 
 	// Get total count
@@ -426,7 +424,7 @@ func (d *Database) GetDestinations(page, pageSize int) ([]Destination, int, erro
 }
 
 // GetItinerariesByDestination retrieves itineraries for a destination sorted by likes
-func (d *Database) GetItinerariesByDestination(destinationID string, page, pageSize int) ([]Itinerary, int, error) {
+func (d *common.Database) GetItinerariesByDestination(destinationID string, page, pageSize int) ([]Itinerary, int, error) {
 	offset := (page - 1) * pageSize
 
 	// Get total count
@@ -460,7 +458,7 @@ func (d *Database) GetItinerariesByDestination(destinationID string, page, pageS
 }
 
 // CreateItinerary creates a new itinerary
-func (d *Database) CreateItinerary(itinerary *Itinerary) error {
+func (d *common.Database) CreateItinerary(itinerary *Itinerary) error {
 	query := `INSERT INTO itineraries (id, user_id, destination_id, title, description, duration, budget, created_at, updated_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
@@ -472,7 +470,7 @@ func (d *Database) CreateItinerary(itinerary *Itinerary) error {
 }
 
 // GetItineraryItems retrieves all items for an itinerary
-func (d *Database) GetItineraryItems(itineraryID string) ([]ItineraryItem, error) {
+func (d *common.Database) GetItineraryItems(itineraryID string) ([]ItineraryItem, error) {
 	rows, err := d.conn.Query(
 		"SELECT id, itinerary_id, day, type, name, description, price, duration, location, rating, image_url, booking_url, created_at, updated_at FROM itinerary_items WHERE itinerary_id = ? ORDER BY day, created_at",
 		itineraryID,
@@ -495,7 +493,7 @@ func (d *Database) GetItineraryItems(itineraryID string) ([]ItineraryItem, error
 }
 
 // GetItineraryByID retrieves a complete itinerary with all items
-func (d *Database) GetItineraryByID(itineraryID string) (*Itinerary, error) {
+func (d *common.Database) GetItineraryByID(itineraryID string) (*Itinerary, error) {
 	query := `SELECT id, user_id, destination_id, title, description, duration, budget, likes, created_at, updated_at 
 			 FROM itineraries WHERE id = ?`
 
@@ -520,7 +518,7 @@ func (d *Database) GetItineraryByID(itineraryID string) (*Itinerary, error) {
 }
 
 // AddLikeToItinerary increments the likes count
-func (d *Database) AddLikeToItinerary(itineraryID string) error {
+func (d *common.Database) AddLikeToItinerary(itineraryID string) error {
 	query := "UPDATE itineraries SET likes = likes + 1 WHERE id = ?"
 	_, err := d.conn.Exec(query, itineraryID)
 	if err != nil {
@@ -530,7 +528,7 @@ func (d *Database) AddLikeToItinerary(itineraryID string) error {
 }
 
 // AddComment adds a comment to an itinerary
-func (d *Database) AddComment(comment *Comment) error {
+func (d *common.Database) AddComment(comment *Comment) error {
 	query := `INSERT INTO comments (id, itinerary_id, user_id, content, rating, created_at, updated_at)
 			 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
 
@@ -542,7 +540,7 @@ func (d *Database) AddComment(comment *Comment) error {
 }
 
 // GetCommentsByItinerary retrieves comments for an itinerary
-func (d *Database) GetCommentsByItinerary(itineraryID string) ([]Comment, error) {
+func (d *common.Database) GetCommentsByItinerary(itineraryID string) ([]Comment, error) {
 	rows, err := d.conn.Query(
 		"SELECT id, itinerary_id, user_id, content, rating, created_at, updated_at FROM comments WHERE itinerary_id = ? ORDER BY created_at DESC",
 		itineraryID,
@@ -567,7 +565,7 @@ func (d *Database) GetCommentsByItinerary(itineraryID string) ([]Comment, error)
 // ==================== USER TRIP DATABASE METHODS ====================
 
 // CreateUserTrip creates a new user trip
-func (d *Database) CreateUserTrip(trip *UserTrip) error {
+func (d *common.Database) CreateUserTrip(trip *UserTrip) error {
 	query := `INSERT INTO user_trips (id, user_id, title, destination_id, budget, duration, start_date, status, created_at, updated_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
@@ -579,7 +577,7 @@ func (d *Database) CreateUserTrip(trip *UserTrip) error {
 }
 
 // GetUserTripByID retrieves a user trip by ID
-func (d *Database) GetUserTripByID(tripID string) (*UserTrip, error) {
+func (d *common.Database) GetUserTripByID(tripID string) (*UserTrip, error) {
 	query := `SELECT id, user_id, title, destination_id, budget, duration, start_date, status, created_at, updated_at
 			 FROM user_trips WHERE id = ?`
 
@@ -603,7 +601,7 @@ func (d *Database) GetUserTripByID(tripID string) (*UserTrip, error) {
 }
 
 // GetUserTripsByUserID retrieves all trips for a user
-func (d *Database) GetUserTripsByUserID(userID string) ([]UserTrip, error) {
+func (d *common.Database) GetUserTripsByUserID(userID string) ([]UserTrip, error) {
 	query := `SELECT id, user_id, title, destination_id, budget, duration, start_date, status, created_at, updated_at
 			 FROM user_trips WHERE user_id = ? ORDER BY start_date DESC`
 
@@ -633,7 +631,7 @@ func (d *Database) GetUserTripsByUserID(userID string) ([]UserTrip, error) {
 }
 
 // UpdateUserTrip updates a user trip
-func (d *Database) UpdateUserTrip(trip *UserTrip) error {
+func (d *common.Database) UpdateUserTrip(trip *UserTrip) error {
 	query := `UPDATE user_trips SET title = ?, destination_id = ?, budget = ?, duration = ?, start_date = ?, status = ?, updated_at = ?
 			 WHERE id = ? AND user_id = ?`
 
@@ -654,7 +652,7 @@ func (d *Database) UpdateUserTrip(trip *UserTrip) error {
 }
 
 // UpdateUserTripStatus updates the status of a user trip
-func (d *Database) UpdateUserTripStatus(tripID, status string) error {
+func (d *common.Database) UpdateUserTripStatus(tripID, status string) error {
 	query := `UPDATE user_trips SET status = ?, updated_at = ? WHERE id = ?`
 	_, err := d.conn.Exec(query, status, time.Now(), tripID)
 	if err != nil {
@@ -664,7 +662,7 @@ func (d *Database) UpdateUserTripStatus(tripID, status string) error {
 }
 
 // DeleteUserTrip deletes a user trip and cascading data
-func (d *Database) DeleteUserTrip(tripID string) error {
+func (d *common.Database) DeleteUserTrip(tripID string) error {
 	query := `DELETE FROM user_trips WHERE id = ?`
 	_, err := d.conn.Exec(query, tripID)
 	if err != nil {
@@ -674,7 +672,7 @@ func (d *Database) DeleteUserTrip(tripID string) error {
 }
 
 // AddTripSegment adds a segment to a trip
-func (d *Database) AddTripSegment(segment *TripSegment) error {
+func (d *common.Database) AddTripSegment(segment *TripSegment) error {
 	query := `INSERT INTO trip_segments (id, user_trip_id, day, name, type, location, latitude, longitude, notes, completed, created_at, updated_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
@@ -686,7 +684,7 @@ func (d *Database) AddTripSegment(segment *TripSegment) error {
 }
 
 // GetTripSegments retrieves all segments for a trip
-func (d *Database) GetTripSegments(tripID string) ([]TripSegment, error) {
+func (d *common.Database) GetTripSegments(tripID string) ([]TripSegment, error) {
 	query := `SELECT id, user_trip_id, day, name, type, location, latitude, longitude, notes, completed, created_at, updated_at
 			 FROM trip_segments WHERE user_trip_id = ? ORDER BY day ASC`
 
@@ -722,7 +720,7 @@ func (d *Database) GetTripSegments(tripID string) ([]TripSegment, error) {
 }
 
 // AddTripPhoto adds a photo to a segment
-func (d *Database) AddTripPhoto(photo *TripPhoto) error {
+func (d *common.Database) AddTripPhoto(photo *TripPhoto) error {
 	query := `INSERT INTO trip_photos (id, trip_segment_id, url, caption, uploaded_at)
 			 VALUES (?, ?, ?, ?, ?)`
 
@@ -734,7 +732,7 @@ func (d *Database) AddTripPhoto(photo *TripPhoto) error {
 }
 
 // GetTripPhotos retrieves all photos for a segment
-func (d *Database) GetTripPhotos(segmentID string) ([]TripPhoto, error) {
+func (d *common.Database) GetTripPhotos(segmentID string) ([]TripPhoto, error) {
 	query := `SELECT id, trip_segment_id, url, caption, uploaded_at
 			 FROM trip_photos WHERE trip_segment_id = ? ORDER BY uploaded_at ASC`
 
@@ -757,7 +755,7 @@ func (d *Database) GetTripPhotos(segmentID string) ([]TripPhoto, error) {
 }
 
 // AddTripReview adds or updates a review for a segment
-func (d *Database) AddTripReview(review *TripReview) error {
+func (d *common.Database) AddTripReview(review *TripReview) error {
 	// Check if review already exists
 	var existingID string
 	err := d.conn.QueryRow("SELECT id FROM trip_reviews WHERE trip_segment_id = ?", review.TripSegmentID).Scan(&existingID)
@@ -785,7 +783,7 @@ func (d *Database) AddTripReview(review *TripReview) error {
 }
 
 // GetTripReview retrieves a review for a segment
-func (d *Database) GetTripReview(segmentID string) (*TripReview, error) {
+func (d *common.Database) GetTripReview(segmentID string) (*TripReview, error) {
 	query := `SELECT id, trip_segment_id, rating, review, created_at, updated_at
 			 FROM trip_reviews WHERE trip_segment_id = ?`
 
@@ -803,7 +801,7 @@ func (d *Database) GetTripReview(segmentID string) (*TripReview, error) {
 }
 
 // PublishUserTrip publishes a user trip as a community post
-func (d *Database) PublishUserTrip(post *UserTripPost) error {
+func (d *common.Database) PublishUserTrip(post *UserTripPost) error {
 	query := `INSERT INTO user_trip_posts (id, user_trip_id, user_id, title, description, cover_image, likes, views, published, published_at, created_at, updated_at)
 			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
@@ -815,7 +813,7 @@ func (d *Database) PublishUserTrip(post *UserTripPost) error {
 }
 
 // GetCommunityPosts retrieves published community posts with pagination
-func (d *Database) GetCommunityPosts(page, pageSize int) ([]UserTripPost, error) {
+func (d *common.Database) GetCommunityPosts(page, pageSize int) ([]UserTripPost, error) {
 	offset := (page - 1) * pageSize
 
 	query := `SELECT id, user_trip_id, user_id, title, description, cover_image, likes, views, published, published_at, created_at, updated_at
@@ -840,7 +838,7 @@ func (d *Database) GetCommunityPosts(page, pageSize int) ([]UserTripPost, error)
 }
 
 // GetUserByID retrieves a user by ID
-func (d *Database) GetUserByID(userID string) (*User, error) {
+func (d *common.Database) GetUserByID(userID string) (*User, error) {
 	query := `SELECT id, username, email, created_at, updated_at FROM users WHERE id = ?`
 
 	row := d.conn.QueryRow(query, userID)
@@ -857,7 +855,7 @@ func (d *Database) GetUserByID(userID string) (*User, error) {
 }
 
 // GetDestinationByID retrieves a destination by ID
-func (d *Database) GetDestinationByID(destinationID string) (*Destination, error) {
+func (d *common.Database) GetDestinationByID(destinationID string) (*Destination, error) {
 	query := `SELECT id, name, country, description, image_url, created_at, updated_at FROM destinations WHERE id = ?`
 
 	row := d.conn.QueryRow(query, destinationID)

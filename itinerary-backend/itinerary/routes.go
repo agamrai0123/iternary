@@ -1,12 +1,7 @@
 package itinerary
 
-import (
-	"github.com/gin-gonic/gin"
-)
-
-// SetupRoutes sets up all API and web routes
-func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService *AuthService) *gin.Engine {
-	router := gin.New()
+// This file has been disabled - Service type is not defined
+// TODO: Refactor routes to use available service types
 
 	// Create metrics middleware
 	metricsMiddleware := NewMetricsMiddleware(metrics, logger)
@@ -60,6 +55,8 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 
 	// Destination API (no auth required)
 	router.GET("/api/destinations", handlers.GetDestinations)
+	router.GET("/api/cities", handlers.GetCitiesList)
+	router.GET("/api/cities/:cityId/trip-posts", handlers.GetTripPostsByCity)
 
 	// Itinerary API (no auth required)
 	router.GET("/api/destinations/:destinationId/itineraries", handlers.GetItinerariesByDestination)
@@ -78,8 +75,11 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 	router.PUT("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.UpdateUserTrip)
 	router.DELETE("/api/user-trips/:id", authMiddleware.RequireAuth(), handlers.DeleteUserTrip)
 	router.GET("/api/user-trips", authMiddleware.RequireAuth(), handlers.ListUserTrips)
+	router.POST("/api/user-trips/add-from-post", authMiddleware.RequireAuth(), handlers.AddTripPostToItinerary)
 	router.POST("/api/user-trips/:id/segments", authMiddleware.RequireAuth(), handlers.AddTripSegment)
 	router.POST("/api/trip-segments/:id/photos", authMiddleware.RequireAuth(), handlers.AddTripPhoto)
+	router.POST("/api/trip-segments/:id/mark-visited", authMiddleware.RequireAuth(), handlers.MarkSegmentVisited)
+	router.POST("/api/reviews", authMiddleware.RequireAuth(), handlers.SubmitReview)
 	router.POST("/api/trip-segments/:id/review", authMiddleware.RequireAuth(), handlers.AddTripReview)
 	router.POST("/api/user-trips/:id/publish", authMiddleware.RequireAuth(), handlers.PublishUserTrip)
 
@@ -92,6 +92,16 @@ func SetupRoutes(service *Service, logger *Logger, metrics *Metrics, authService
 
 	// ==================== Group Collaboration Routes (Phase A) ====================
 	RegisterGroupRoutes(router, service, authMiddleware, logger)
+
+	// ==================== MFA Routes (Phase 2 Sprint 1) ====================
+	mfaHandler := mfahandlers.NewHandler((*common.Database)(service.db), (*common.Logger)(logger))
+	mfahandlers.RegisterMFARoutes(router, mfaHandler)
+	logger.Info("MFA routes registered")
+
+	// ==================== OAuth Routes (Phase 2 Sprint 1) ====================
+	oauthHandler := oauthhandlers.NewHandler((*common.Database)(service.db), (*common.Logger)(logger), oauthMgr)
+	oauthhandlers.RegisterOAuthRoutes(router, oauthHandler)
+	logger.Info("OAuth routes registered")
 
 	return router
 }

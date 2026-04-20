@@ -301,7 +301,7 @@ func TestRateLimitingWindowReset(t *testing.T) {
 	}
 
 	// Try one more - should fail
-	countVal, err := cacheManager.Get(rateLimitKey)
+	countVal, _ := cacheManager.Get(rateLimitKey)
 	if countVal != nil {
 		if c, ok := countVal.(float64); ok && int(c) >= maxRequests {
 			t.Log("✓ Rate limit enforced in first window")
