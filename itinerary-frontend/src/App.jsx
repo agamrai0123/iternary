@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import CityPage from './pages/CityPage';
 import TripPostDetailPage from './pages/TripPostDetailPage';
 import MyTripsPage from './pages/MyTripsPage';
+import MyItineraryPage from './pages/MyItineraryPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -58,6 +59,14 @@ const AppContent = () => {
         element={
           <ProtectedRoute>
             <MyTripsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-itinerary/:tripId"
+        element={
+          <ProtectedRoute>
+            <MyItineraryPage />
           </ProtectedRoute>
         }
       />
