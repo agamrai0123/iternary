@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CityPage from './pages/CityPage';
+import TripPostDetailPage from './pages/TripPostDetailPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -40,6 +41,14 @@ const AppContent = () => {
         element={
           <ProtectedRoute>
             <CityPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trip-posts/:postId"
+        element={
+          <ProtectedRoute>
+            <TripPostDetailPage />
           </ProtectedRoute>
         }
       />
